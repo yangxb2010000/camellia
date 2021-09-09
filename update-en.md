@@ -5,7 +5,7 @@
 * camellia-redis-proxy support monitor data visualization in prometheus
 * camellia-redis-proxy support multi-write based on mq(such as kafka)
 
-# 1.0.36（2021/08/xx）
+# 1.0.36（2021/09/06）
 ### add
 * add camellia-tools module, provide compress utils CamelliaCompressor, encrypt utils CamelliaEncryptor, local cache utils CamelliaLoadingCache  
 * provide samples for camellia-redis-proxy implements data-encryption/data-compress by use camellia-tools
@@ -18,6 +18,9 @@
 
 ### update
 * camellia-redis-proxy info command reply add http_console_port field
+* camellia-redis-proxy info command reply add redis_version field
+* camellia-redis-proxy info command reply of Stats rename field, such as avg.commands.qps rename to avg_commands_qps  
+* camellia-redis-proxy info command reply of Stats qps field format to %.2f
 * auth/client/quit commands migrate from ServerHandler to CommandsTransponder  
 
 ### fix
