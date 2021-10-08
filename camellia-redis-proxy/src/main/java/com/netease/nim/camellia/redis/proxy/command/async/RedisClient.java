@@ -46,6 +46,7 @@ public class RedisClient implements AsyncClient {
     private final RedisClientAddr addr;
     private final String host;
     private final int port;
+    private final String userName;
     private final String password;
 
     private final EventLoopGroup eventLoopGroup;
@@ -56,7 +57,7 @@ public class RedisClient implements AsyncClient {
     private final long heartbeatTimeoutMillis;
     private final int connectTimeoutMillis;
 
-    private final boolean closeIdleConnection;
+    private boolean closeIdleConnection;
     private final long checkIdleThresholdSeconds;
     private final int closeIdleConnectionDelaySeconds;
 
@@ -67,7 +68,6 @@ public class RedisClient implements AsyncClient {
     //status
     private volatile boolean valid = true;
     private volatile boolean closing = false;
-    private volatile boolean checkClientLastCommandTime = false;
     private long lastCommandTime = TimeCache.currentMillis;
 
     private final Queue<CompletableFuture<Reply>> queue = new LinkedBlockingQueue<>(1024*32);
@@ -76,8 +76,9 @@ public class RedisClient implements AsyncClient {
         this.redisClientConfig = config;
         this.host = config.getHost();
         this.port = config.getPort();
+        this.userName = config.getUserName();
         this.password = config.getPassword();
-        this.addr = new RedisClientAddr(host, port, password);
+        this.addr = new RedisClientAddr(host, port, userName, password);
         this.eventLoopGroup = config.getEventLoopGroup();
         this.heartbeatIntervalSeconds = config.getHeartbeatIntervalSeconds();
         this.heartbeatTimeoutMillis = config.getHeartbeatTimeoutMillis();
@@ -87,13 +88,7 @@ public class RedisClient implements AsyncClient {
                 ? Constants.Transpond.checkIdleConnectionThresholdSeconds : config.getCheckIdleConnectionThresholdSeconds();
         this.closeIdleConnectionDelaySeconds = config.getCloseIdleConnectionDelaySeconds() <=0
                 ? Constants.Transpond.closeIdleConnectionDelaySeconds : config.getCloseIdleConnectionDelaySeconds();
-        if (PasswordMaskUtils.maskEnable) {
-            this.clientName = "RedisClient[" + (password == null ? "" : PasswordMaskUtils.maskStr(password.length()))
-                    + "@" + host + ":" + port + "][id=" + id.incrementAndGet() + "]";
-        } else {
-            this.clientName = "RedisClient[" + (password == null ? "" : password)
-                    + "@" + host + ":" + port + "][id=" + id.incrementAndGet() + "]";
-        }
+        this.clientName = "RedisClient[" + PasswordMaskUtils.maskAddr(addr.getUrl()) + "][id=" + id.incrementAndGet() + "]";
     }
 
     public void start() {
@@ -125,7 +120,12 @@ public class RedisClient implements AsyncClient {
             if (password != null) {
                 logger.info("{} need password, try auth", clientName);
                 boolean authSuccess = false;
-                CompletableFuture<Reply> future = sendCommand(RedisCommand.AUTH.raw(), Utils.stringToBytes(password));
+                CompletableFuture<Reply> future;
+                if (userName == null) {
+                    future = sendCommand(RedisCommand.AUTH.raw(), Utils.stringToBytes(password));
+                } else {
+                    future = sendCommand(RedisCommand.AUTH.raw(), Utils.stringToBytes(userName), Utils.stringToBytes(password));
+                }
                 Reply reply = future.get(connectTimeoutMillis, TimeUnit.MILLISECONDS);
                 if (reply instanceof StatusReply) {
                     if (((StatusReply) reply).getStatus().equalsIgnoreCase(StatusReply.OK.getStatus())) {
@@ -194,6 +194,8 @@ public class RedisClient implements AsyncClient {
     public void startIdleCheck() {
         synchronized (this) {
             if (idleCheckScheduledFuture == null) {
+                lastCommandTime = TimeCache.currentMillis;
+                closeIdleConnection = true;
                 idleCheckScheduledFuture = idleCheckScheduled.scheduleAtFixedRate(this::checkIdle,
                         checkIdleThresholdSeconds, checkIdleThresholdSeconds, TimeUnit.SECONDS);
             }
@@ -253,16 +255,6 @@ public class RedisClient implements AsyncClient {
 
     public void stop() {
         stop(false);
-    }
-
-    public void markClosing() {
-        synchronized (this) {
-            closing = true;
-        }
-    }
-
-    public void checkClientLastCommandTime() {
-        checkClientLastCommandTime = true;
     }
 
     public void stop(boolean grace) {
@@ -384,7 +376,7 @@ public class RedisClient implements AsyncClient {
             logger.debug("{} sendCommands, commands.size = {}", clientName, commands.size());
         }
         channel.writeAndFlush(pack);
-        if (closeIdleConnection || checkClientLastCommandTime) {
+        if (closeIdleConnection) {
             lastCommandTime = TimeCache.currentMillis;
         }
     }

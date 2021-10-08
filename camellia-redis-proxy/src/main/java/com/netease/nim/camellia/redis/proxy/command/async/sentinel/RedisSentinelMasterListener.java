@@ -6,6 +6,7 @@ import com.netease.nim.camellia.redis.proxy.command.async.RedisClient;
 import com.netease.nim.camellia.redis.proxy.command.async.RedisClientHub;
 import com.netease.nim.camellia.redis.proxy.enums.RedisCommand;
 import com.netease.nim.camellia.redis.proxy.enums.RedisKeyword;
+import com.netease.nim.camellia.redis.proxy.monitor.PasswordMaskUtils;
 import com.netease.nim.camellia.redis.proxy.reply.BulkReply;
 import com.netease.nim.camellia.redis.proxy.reply.MultiBulkReply;
 import com.netease.nim.camellia.redis.proxy.reply.Reply;
@@ -53,14 +54,14 @@ public class RedisSentinelMasterListener extends Thread {
     @Override
     public void run() {
         RedisClient redisClient = null;
-        logger.info("redis sentinel master listener thread start, resource = {}, sentinel = {}", resource.getUrl(), sentinel.getUrl());
+        logger.info("redis sentinel master listener thread start, resource = {}, sentinel = {}", PasswordMaskUtils.maskResource(resource.getUrl()), sentinel.getUrl());
         while (running) {
             try {
                 if (redisClient == null || !redisClient.isValid()) {
                     if (redisClient != null && !redisClient.isValid()) {
                         redisClient.stop();
                     }
-                    redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null);
+                    redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null, null);
                     while (redisClient == null || !redisClient.isValid()) {
                         logger.error("connect to sentinel fail, sentinel = {}. sleeping 5000ms and retrying.", sentinel.getUrl());
                         try {
@@ -68,7 +69,7 @@ public class RedisSentinelMasterListener extends Thread {
                         } catch (InterruptedException e) {
                             logger.error(e.getMessage(), e);
                         }
-                        redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null);
+                        redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null, null);
                     }
                 }
                 if (redisClient.isValid()) {
@@ -101,7 +102,7 @@ public class RedisSentinelMasterListener extends Thread {
         if (redisClient != null && redisClient.isValid()) {
             redisClient.stop();
         }
-        logger.info("redis sentinel master listener thread stop, resource = {}, sentinel = {}", resource.getUrl(), sentinel.getUrl());
+        logger.info("redis sentinel master listener thread stop, resource = {}, sentinel = {}", PasswordMaskUtils.maskResource(resource.getUrl()), sentinel.getUrl());
     }
 
     private void sendFutures(RedisClient redisClient) {

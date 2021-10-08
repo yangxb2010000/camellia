@@ -5,6 +5,33 @@
 * camellia-redis-proxy support monitor data visualization in prometheus
 * camellia-redis-proxy support multi-write based on mq(such as kafka)
 
+# 1.0.38（2021/10/xx）
+### 新增
+* add camellia-id-gen mode, support snowflake, support db-base id-gen(growth tread), support db/redis-base id-gen(strict growth)
+* support setting custom callback by spring @Autowired
+
+### 更新
+* remove camellia-redis-toolkit module, CamelliaCounterCache/CamelliaRedisLock merge to camellia-redis module
+* rename package of camellia-tools module
+
+### fix
+* none
+
+
+# 1.0.37（2021/09/24）
+### add
+* camellia-redis-proxy support setting upstream redis auth with userName/password
+
+### update
+* info command get upstream redis connect, will not return if connect is 0
+* enhance ProxyDynamicConfHook, so you can intercept all dynamic conf of ProxyDynamicConf
+* extend the boundary of password-mask in monitor-data/log  
+* refactor CommandDecoder
+
+### fix
+* fix monitor data not exact of upstream redis connect, no effect the core function  
+
+
 # 1.0.36（2021/09/06）
 ### add
 * add camellia-tools module, provide compress utils CamelliaCompressor, encrypt utils CamelliaEncryptor, local cache utils CamelliaLoadingCache  

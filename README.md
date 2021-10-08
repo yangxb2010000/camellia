@@ -13,8 +13,10 @@ Camellia是网易云信开发的服务器基础组件，所有模块均已应用
 ├─`camellia-redis`  
 ├─`camellia-redis-proxy`   
 ├─`camellia-redis-proxy-hbase`  
-├─`camellia-redis-toolkit`  
 ├─`camellia-tools`    
+├─`camellia-id-gen`  
+│ ├─`camellia-id-gen-core`  
+│ ├─`camellia-id-gen-sdk`      
 ├─`camellia-redis-zk`  
 │ ├─`camellia-redis-zk-common`  
 │ ├─`camellia-redis-zk-discovery`  
@@ -23,9 +25,11 @@ Camellia是网易云信开发的服务器基础组件，所有模块均已应用
 │ ├─`camellia-core-samples`  
 │ ├─`camellia-dashboard-samples`  
 │ ├─`camellia-redis-samples`  
+│ ├─`camellia-id-gen-snowflake-samples`    
+│ ├─`camellia-id-gen-strict-samples`    
+│ ├─`camellia-id-gen-segment-samples`    
 │ ├─`camellia-redis-proxy-samples`   
 │ ├─`camellia-redis-proxy-hbase-samples`  
-│ ├─`camellia-redis-toolkit-samples`  
 │ ├─`camellia-hbase-samples`   
 │ ├─`camellia-spring-redis-samples`   
 ├─`camellia-spring-boot-starters`               
@@ -42,7 +46,10 @@ Camellia是网易云信开发的服务器基础组件，所有模块均已应用
 │ ├─`camellia-redis-zk-discovery-spring-boot-starter`    
 │ ├─`camellia-spring-redis-base`         
 │ ├─`camellia-spring-redis-eureka-discovery-spring-boot-starter`     
-│ ├─`camellia-spring-redis-zk-discovery-spring-boot-starter`    
+│ ├─`camellia-spring-redis-zk-discovery-spring-boot-starter`  
+│ ├─`camellia-spring-redis-id-gen-snowflake-spring-boot-starter`   
+│ ├─`camellia-spring-redis-id-gen-strict-spring-boot-starter`   
+│ ├─`camellia-spring-redis-id-gen-segment-spring-boot-starter`  
               
 ## 介绍
 ### 1、camellia-core  
@@ -72,15 +79,15 @@ Camellia是网易云信开发的服务器基础组件，所有模块均已应用
 基于camellia-redis-proxy、CamelliaRedisTemplate、CamelliaHBaseTemplate  
 支持string/hash/zset相关命令的冷热分离存储  
 [快速开始](/docs/redis-proxy-hbase/redis-proxy-hbase.md)    
-### 7、camellia-redis-toolkit  
-基于CamelliaRedisTemplate，提供了redis相关的一些工具类，如分布式锁、分布式id生成等    
-[快速开始](/docs/toolkit/toolkit.md)    
-### 8、camellia-tools
+### 7、camellia-tools
 提供了一些工具类，包括：压缩工具类CamelliaCompressor、加解密工具类CamelliaEncryptor、本地缓存工具类CamelliaLoadingCache等  
-[快速开始](/docs/tools/tools.md)       
+[快速开始](/docs/tools/tools.md)     
+### 8、camellia-id-gen
+提供了多种id生成算法，开箱即用，包括雪花算法、严格递增的id生成算法、趋势递增的id生成算法等    
+[快速开始](/docs/id-gen/id-gen.md)       
 
 ## 版本
-最新版本是1.0.36，已经发布到maven中央仓库（2021/09/06）  
+最新版本是1.0.37，已经发布到maven中央仓库（2021/09/24）  
 [更新日志](/update-zh.md)  
 
 ## 联系方式

@@ -14,8 +14,10 @@ Camellia is originally develop as basic architecture for netease-yunxin's server
 ├─`camellia-redis`  
 ├─`camellia-redis-proxy`   
 ├─`camellia-redis-proxy-hbase`  
-├─`camellia-redis-toolkit`  
-├─`camellia-tools`  
+├─`camellia-tools`    
+├─`camellia-id-gen`  
+│ ├─`camellia-id-gen-core`   
+│ ├─`camellia-id-gen-sdk`      
 ├─`camellia-redis-zk`  
 │ ├─`camellia-redis-zk-common`  
 │ ├─`camellia-redis-zk-discovery`  
@@ -24,9 +26,11 @@ Camellia is originally develop as basic architecture for netease-yunxin's server
 │ ├─`camellia-core-samples`  
 │ ├─`camellia-dashboard-samples`  
 │ ├─`camellia-redis-samples`  
+│ ├─`camellia-id-gen-snowflake-samples`    
+│ ├─`camellia-id-gen-strict-samples`    
+│ ├─`camellia-id-gen-segment-samples`    
 │ ├─`camellia-redis-proxy-samples`   
 │ ├─`camellia-redis-proxy-hbase-samples`  
-│ ├─`camellia-redis-toolkit-samples`  
 │ ├─`camellia-hbase-samples`   
 │ ├─`camellia-spring-redis-samples`   
 ├─`camellia-spring-boot-starters`               
@@ -43,7 +47,10 @@ Camellia is originally develop as basic architecture for netease-yunxin's server
 │ ├─`camellia-redis-zk-discovery-spring-boot-starter`    
 │ ├─`camellia-spring-redis-base`         
 │ ├─`camellia-spring-redis-eureka-discovery-spring-boot-starter`     
-│ ├─`camellia-spring-redis-zk-discovery-spring-boot-starter`    
+│ ├─`camellia-spring-redis-zk-discovery-spring-boot-starter`  
+│ ├─`camellia-spring-redis-id-gen-snowflake-spring-boot-starter`   
+│ ├─`camellia-spring-redis-id-gen-strict-spring-boot-starter`   
+│ ├─`camellia-spring-redis-id-gen-segment-spring-boot-starter`  
                      
 ## Instruction
 ### 1、camellia-core  
@@ -72,15 +79,12 @@ support client read-write-separate/double-write
 ### 6、camellia-redis-proxy-hbase    
 base on camellia-redis-proxy、CamelliaRedisTemplate、CamelliaHBaseTemplate, support hot-code-sepatation on redis string/hash/zset commands  
 [QUICK START](/docs/redis-proxy-hbase/redis-proxy-hbase.md)  
-### 7、camellia-redis-toolkit  
-base on CamelliaRedisTemplate，provide some toolkit of redis, such as redis-lock  
-[QUICK START](/docs/toolkit/toolkit.md)
-### 8、camellia-tools  
+### 7、camellia-tools  
 provide some tools, such as compress utils CamelliaCompressor, encrypt utils CamelliaEncryptor, local cache utils CamelliaLoadingCache       
 [QUICK START](/docs/tools/tools.md)   
 
 ## Version
-latest version is 1.0.36，have deploy to maven central repository on 2021/09/06  
+latest version is 1.0.37，have deploy to maven central repository on 2021/09/24  
 [CHANGE_LOG](/update-en.md)  
 
 ## Contact

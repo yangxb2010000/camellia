@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>camellia-samples</artifactId>
-    <version>1.0.36</version>
+    <version>1.0.38-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.netease.nim</groupId>
         <artifactId>camellia</artifactId>
-        <version>1.0.36</version>
+        <version>1.0.38-SNAPSHOT</version>
     </parent>
 
     <modules>
@@ -22,8 +22,10 @@
         <module>camellia-hbase-samples</module>
         <module>camellia-redis-proxy-samples</module>
         <module>camellia-redis-proxy-hbase-samples</module>
-        <module>camellia-redis-toolkit-samples</module>
         <module>camellia-tools-samples</module>
+        <module>camellia-id-gen-snowflake-samples</module>
+        <module>camellia-id-gen-segment-samples</module>
+        <module>camellia-id-gen-strict-samples</module>
         <module>camellia-spring-redis-samples</module>
     </modules>
 

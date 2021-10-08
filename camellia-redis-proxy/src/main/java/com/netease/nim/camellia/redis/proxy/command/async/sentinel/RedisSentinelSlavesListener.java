@@ -5,6 +5,7 @@ import com.netease.nim.camellia.redis.proxy.command.async.HostAndPort;
 import com.netease.nim.camellia.redis.proxy.command.async.RedisClient;
 import com.netease.nim.camellia.redis.proxy.command.async.RedisClientHub;
 import com.netease.nim.camellia.redis.proxy.enums.RedisCommand;
+import com.netease.nim.camellia.redis.proxy.monitor.PasswordMaskUtils;
 import com.netease.nim.camellia.redis.proxy.reply.Reply;
 import com.netease.nim.camellia.redis.proxy.util.Utils;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class RedisSentinelSlavesListener extends Thread {
                     if (redisClient != null && !redisClient.isValid()) {
                         redisClient.stop();
                     }
-                    redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null);
+                    redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null, null);
                     while (redisClient == null || !redisClient.isValid()) {
                         logger.error("connect to sentinel fail, sentinel = {}. sleeping 5000ms and retrying.", sentinel.getUrl());
                         try {
@@ -59,7 +60,7 @@ public class RedisSentinelSlavesListener extends Thread {
                         } catch (InterruptedException e) {
                             logger.error(e.getMessage(), e);
                         }
-                        redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null);
+                        redisClient = RedisClientHub.newClient(sentinel.getHost(), sentinel.getPort(), null, null);
                     }
                 }
                 List<HostAndPort> slaves = null;
@@ -75,10 +76,10 @@ public class RedisSentinelSlavesListener extends Thread {
                 }
                 TimeUnit.MILLISECONDS.sleep(5000);
             } catch (Exception e) {
-                logger.error("getSlaveAddrs error, url = {}, sentinel = {}, master = {}", resource.getUrl(), sentinel.getUrl(), master, e);
+                logger.error("getSlaveAddrs error, url = {}, sentinel = {}, master = {}", PasswordMaskUtils.maskResource(resource.getUrl()), sentinel.getUrl(), master, e);
             }
         }
-        logger.info("redis sentinel slaves listener thread stop, resource = {}, sentinel = {}", resource.getUrl(), sentinel.getUrl());
+        logger.info("redis sentinel slaves listener thread stop, resource = {}, sentinel = {}", PasswordMaskUtils.maskResource(resource.getUrl()), sentinel.getUrl());
     }
 
     public void shutdown() {

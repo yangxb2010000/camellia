@@ -5,18 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>camellia-spring-boot-starters</artifactId>
-    <version>1.0.36</version>
+    <version>1.0.38-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.netease.nim</groupId>
         <artifactId>camellia</artifactId>
-        <version>1.0.36</version>
+        <version>1.0.38-SNAPSHOT</version>
     </parent>
 
     <modules>
         <module>camellia-dashboard-spring-boot-starter</module>
+        <module>camellia-id-gen-spring-boot-starters</module>
         <module>camellia-redis-spring-boot-starter</module>
         <module>camellia-redis-eureka-spring-boot-starter</module>
         <module>camellia-redis-proxy-spring-boot-starter</module>
