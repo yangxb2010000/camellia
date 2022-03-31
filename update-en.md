@@ -3,14 +3,205 @@
 * camellia-redis-proxy support a way for Lettuce to use camellia-redis-proxy depends on register-discovery mode easily
 * camellia-redis-proxy support client-cache feature of redis6.0
 * camellia-redis-proxy support monitor data visualization in prometheus
+
+
+# 1.0.53（2022/03/24）
+### add
+* camellia-redis-proxy console support /detect, so you can use camellia-redis-proxy as a monitor platform
+
+### update
+* none
+
+### fix
+* fix camellia-redis-proxy's if command with upstream-info section(bug from v1.0.51)
+
+
+# 1.0.52（2022/03/16）
+### add
+* provide camellia-feign module, so feign support dynamic route, multi-write, dynamic timeout conf
+* camellia-core provide CamelliaDiscovery/CamelliaDiscoveryFactory
+* camellia-core provide ResourceTableUpdater/MultiResourceTableUpdater
+
+### update
+* camellia-redis remove ProxyDiscovery, use IProxyDiscovery which implements CamelliaDiscovery
+* camellia-id-gen remove AbstractIdGenServerDiscovery, use IdGenServerDiscovery which implements CamelliaDiscovery
+
+### fix
+* none
+
+
+# 1.0.51（2022/02/28）
+### add
+* none
+
+### update
+* camellia-redis-proxy info command reply, replace \n to \r\n, so you can use redis-shake to migrate redis data
+
+### fix
+* after invoke deregister method of ZkProxyRegistry, if the tcp connect of zk reset, reconnect task will trigger camellia-redis-proxy register to zk again
+* camellia-dashboard and camellia-redis-proxy print redis password in some case
+
+
+# 1.0.50（2022/02/17）
+### add
+* camellia-redis provide CamelliaRedisLockManager to manager redis-lock auto renew
+* camellia-redis provide CamelliaRedisTemplateManager to manger multi-redis-template of different bid/bgroup
+* camellia-tools prvodie CamelliaHashedExecutor to execute runnable/callable with same thread in same hashKey
+
+### update
+* none
+
+### fix
+* fix camellia-dashboard deleteResourceTable api, should update ResourceInfo's tid ref
+
+
+# 1.0.49（2022/01/19）
+### add
+* camellia-redis-proxy support script load/flush/exists
+* camellia-redis-proxy support eval_ro/evalsha_ro, need upstream redis7.0+
+
+### update
+* camellia-redis-proxy upstream redis spend stats support mask password
+
+### fix
+* scan should be a read command in monitor data
+* fix camellia-dashboard api getTableRefByBidGroup/deleteTableRef, param should bid not tid
+
+# 1.0.48（2022/01/17）
+### add
+* camellia-redis-proxy support scan command when use custom sharding
+* CamelliaRedisTemplate provide getReadJedisList/getWriteJedisList method
+* CamelliaRedisTemplate provide executeRead/executeWrite method
+
+### update
+* none
+
+### fix
+* none
+
+
+# 1.0.47（2022/01/05）
+### add
+* CamelliaRedisTemplate provide getJedisList method
+
+### update
+* none
+
+### fix
+* none
+
+
+# 1.0.46（2021/12/29）
+### add
+* provide CRC16HashTagShardingFunc/DefaultHashTagShardingFunc to support HashTag when use custom sharding route table
+
+### update
+* rename shading to sharding
+
+### fix
+* none
+
+
+# 1.0.45（2021/12/24）
+### add
+* camellia-redis-proxy KafkaMqPackConsumer support batch/retry
+* camellia-redis-proxy provide DynamicCommandInterceptorWrapper to combine multi CommandInterceptors
+* camellia-redis-proxy support disable console
+* camellia-redis-proxy support read from redis-cluster slave node
+* camellia-redis-proxy support transpond to multi stateless redis proxies, such as codis-proxy/twemproxy
+
+### update
+* camellia-id-gen modify default conf
+
+### fix
+* none
+
+
+# 1.0.44（2021/11/29）
+### add
+* camellia-redis-proxy provide KafkaMqPackProducerConsumer, so proxy can be producer/consumer at the same time
+* camellia-redis-proxy provide monitor upstream redis spend time
+* RedisProxyJedisPool support jedis3
+
+### update
+* refactor project module structure, new module camellia-redis-proxy-plugins, rename/move camellia-redis-zk/camellia-redis-proxy-mq/camellia-redis-proxy-hbase into camellia-redis-proxy-plugins
+* RedisProxyJedisPool rename package, move package to camellia-redis-proxy-discovery
+* camellia-redis-proxy refactor reply of info gc command
+
+### fix
+* none
+
+
+# 1.0.43（2021/11/23）
+### add
+* camellia-id-gen of segment and strict mode provide update api to setting starting id
+* camellia-id-gen of segment and strict mode support setting shifting region id
+* camellia-id-gen of segment mode support id sync in multi regions
+* camellia-id-gen provide api to decode regionId/workerId
 * camellia-redis-proxy support multi-write based on mq(such as kafka)
 
-# 1.0.38（2021/10/xx）
-### 新增
+### update
+* camellia-redis-proxy monitor data buffer with size limit
+* camellia-redis-proxy close client connection if custom ClientAuthProvider throw exception
+
+### fix
+* fix camellia-id-gen-strict-spring-boot-starter config of cache-key-prefix not effective
+
+
+# 1.0.42（2021/10/26）
+### add
+* camellia-redis-proxy info command metrics of redis-cluster-safety redefine
+
+### update
+* camellia-redis-proxy console api of monitor support setting json max size of slow-command/big-key
+
+### fix
+* none
+
+
+# 1.0.41（2021/10/20）
+### add
+* camellia-redis-proxy info command metrics of redis-cluster-safety redefine
+
+### update
+* none
+
+### fix
+* none
+
+
+# 1.0.40（2021/10/19）
+### add
+* camellia-redis-proxy support info command by http-api
+* camellia-redis-proxy support client connect of bid/bgroup in info command
+
+### update
+* none
+
+### fix
+* none
+
+
+# 1.0.39（2021/10/18）
+### add
+* camellia-redis-proxy support setting max client connect limit, default no limit
+* camellia-redis-proxy support setting idle client connect check and close, default disable
+* camellia-redis-proxy provide RateLimitCommandInterceptor, both support proxy-level and bid-bgroup-level
+* camellia-redis-proxy provide camellia-redis-proxy-nacos-spring-boot-starter  
+
+### update
+* rename package name of CommandInterceptor
+
+### fix
+* none
+
+
+# 1.0.38（2021/10/11）
+### add
 * add camellia-id-gen mode, support snowflake, support db-base id-gen(growth tread), support db/redis-base id-gen(strict growth)
 * support setting custom callback by spring @Autowired
 
-### 更新
+### update
 * remove camellia-redis-toolkit module, CamelliaCounterCache/CamelliaRedisLock merge to camellia-redis module
 * rename package of camellia-tools module
 
@@ -277,7 +468,7 @@
 
 # 1.0.17（2021/01/15）
 ### add
-* camellia-redis-proxy support transaction command, only when proxy route to redis/redis-sentinel with no-shading/no-read-write-separate
+* camellia-redis-proxy support transaction command, only when proxy route to redis/redis-sentinel with no-sharding/no-read-write-separate
 * support ZPOPMIN/ZPOPMAX/BZPOPMIN/BZPOPMAX
 
 ### update
@@ -359,7 +550,7 @@
 * update CommandInterceptor define
 
 ### fix
-* fix NPE for mget when use custom shading(from 1.0.10)
+* fix NPE for mget when use custom sharding(from 1.0.10)
 * fix bug of redis sentinel master switch in proxy
 
 # 1.0.10（2020/10/16）
@@ -369,7 +560,7 @@
 * camellia-redis-proxy support pub-sub commands
 * camellia-redis-proxy support set calc commands, such as SINTER/SINTERSTORE/SUNION/SUNIONSTORE/SDIFF/SDIFFSTORE and so on
 * camellia-redis-proxy support setting multi-write-mode, provider three options, see com.netease.nim.camellia.redis.proxy.conf.MultiWriteMode
-* camellia-redis-proxy provider AbstractSimpleShadingFunc to easily define custom shading func
+* camellia-redis-proxy provider AbstractSimpleShardingFunc to easily define custom sharding func
 * camellia-redis-proxy-hbase support standalone freq of hbase get hit of zmemeber
 
 ### update

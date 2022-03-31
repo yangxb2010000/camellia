@@ -3,9 +3,203 @@
 * camellia-redis-proxy支持基于注册中心的Lettuce的简单的接入方案
 * camellia-redis-proxy支持redis6.0的client-cache特性
 * camellia-redis-proxy支持监控数据可视化到prometheus等平台
-* camellia-redis-proxy支持基于消息队列（如kafka）的异步双写
 
-# 1.0.38（2021/10/xx）
+# 1.0.53（2022/03/24）
+### 新增
+* camellia-redis-proxy的console新增detect接口，从而可以把camellia-redis-proxy作为一个监控平台使用
+
+### 更新
+* 无
+
+### fix
+* camellia-redis-proxy使用info upstream-info命令获取后端redis集群信息时，当后端是redis-cluster时抛异常，v1.0.51时引入
+
+
+# 1.0.52（2022/03/16）
+### 新增
+* 新增camellia-feign模块，feign支持动态路由，支持双写，支持动态调整超时时间等
+* camellia-core新增CamelliaDiscovery/CamelliaDiscoveryFactory系列接口，统一camellia各模块下的discovery功能
+* camellia-core新增ResourceTableUpdater/MultiResourceTableUpdater系列抽象类，统一camellia各模块下基于updater实现的动态路由功能
+
+### 更新
+* camellia-redis移除了ProxyDiscovery抽象类，统一使用IProxyDiscovery接口，并继承自CamelliaDiscovery接口
+* camellia-id-gen移除了AbstractIdGenServerDiscovery抽象类，统一使用IdGenServerDiscovery接口，并继承自CamelliaDiscovery接口
+
+### fix
+* 无
+
+
+# 1.0.51（2022/02/28）
+### 新增
+* 无
+
+### 更新
+* camellia-redis-proxy的info命令回包中，换行符从\n替换为\r\n，从而适配redis-shake进行redis数据迁移，具体见：[misc](/docs/redis-proxy/misc.md)
+
+### fix
+* ZkProxyRegistry在调用了deregister方法取消注册后，如果网络异常导致proxy到zk的tcp连接重连，可能会导致camellia-redis-proxy重新注册到zk
+* camellia-dashboard和camellia-redis-proxy某些情况下在日志中打印了后端redis的密码，感谢[@chanjarster](https://github.com/chanjarster)修复该问题
+
+
+# 1.0.50（2022/02/17）
+### 新增
+* camellia-redis新增CamelliaRedisLockManager，用于管理redis分布式锁的自动续约，具体见：[toolkit](/docs/redis-template/toolkit.md)
+* camellia-redis新增CamelliaRedisTemplateManager，用于管理不同bid/bgroup的多组CamelliaRedisTemplate，具体见：[dynamic-dashboard](/docs/redis-template/dynamic-dashboard.md)
+* camellia-tools新增CamelliaHashedExecutor，用于执行相同hashKey的runnable/callable任务时是相同线程执行
+
+### 更新
+* 无
+
+### fix
+* camellia-dashboard的deleteResourceTable接口，应该同步更新ResourceInfo的tid引用，感谢[@chanjarster](https://github.com/chanjarster)修复该bug
+
+
+# 1.0.49（2022/01/19）
+### 新增
+* camellia-redis-proxy支持script load/flush/exists，具体见：[misc](/docs/redis-proxy/misc.md)
+* camellia-redis-proxy支持eval_ro/evalsha_ro，需要后端是redis7.0+
+
+### 更新
+* camellia-redis-proxy监控后端redis响应耗时的监控数据支持密码脱敏
+
+### fix
+* scan在监控数据里应该是一个读命令而不是写命令，不影响功能，只是监控数据有误
+* camellia-dashboard的getTableRefByBidGroup/deleteTableRef接口参数应该是bid而不是tid，感谢[@chanjarster](https://github.com/chanjarster)修复该bug
+
+
+# 1.0.48（2022/01/17）
+### 新增
+* camellia-redis-proxy在自定义分片策略下支持scan命令
+* CamelliaRedisTemplate新增getReadJedisList/getWriteJedisList接口
+* CamelliaRedisTemplate新增executeRead/executeWrite接口
+
+### 更新
+* 无
+
+### fix
+* 无
+
+
+# 1.0.47（2022/01/05）
+### 新增
+* CamelliaRedisTemplate新增getJedisList接口
+
+### 更新
+* 无
+
+### fix
+* 无
+
+
+# 1.0.46（2021/12/29）
+### 新增
+* 新增CRC16HashTagShardingFunc类和DefaultHashTagShardingFunc类，用于自定义分片时可以支持hashtag，具体见：[路由](/docs/redis-proxy/route.md)
+
+### 更新
+* 重命名shading为sharding，具体见：[路由](/docs/redis-proxy/route.md)
+
+### fix
+* 无
+
+
+# 1.0.45（2021/12/24）
+### 新增
+* camellia-redis-proxy的KafkaMqPackConsumer支持配置批量消费和重试，具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+* camellia-redis-proxy提供DynamicCommandInterceptorWrapper用于动态组合多个拦截器，具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+* camellia-redis-proxy支持不开启console（设置端口为0即可），具体见：[监控](/docs/redis-proxy/monitor.md)
+* camellia-redis-proxy支持读redis-cluster的从节点，具体见：[路由](/docs/redis-proxy/route.md)
+* camellia-redis-proxy支持代理到多个其他无状态的proxy节点，如codis-proxy、twemproxy等，具体见：[路由](/docs/redis-proxy/route.md)
+
+### 更新
+* camellia-id-gen调整了若干参数的默认值
+
+### fix
+* 无
+
+
+# 1.0.44（2021/11/29）
+### 新增
+* camellia-redis-proxy新增KafkaMqPackProducerConsumer，proxy可以同时作为kafka的生产者和消费者，具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+* camellia-redis-proxy支持监控后端redis的响应时间，具体见：[监控](/docs/redis-proxy/monitor.md)
+* RedisProxyJedisPool支持jedis3，具体见：[部署](/docs/redis-proxy/deploy.md)
+
+### 更新
+* 调整代码结构，新建camellia-redis-proxy-plugins模块，camellia-redis-zk/camellia-redis-proxy-mq/camellia-redis-proxy-hbase平移到camellia-redis-proxy-plugins模块下
+* camellia-redis-zk重命名为camellia-redis-proxy-discovery-zk，并归属于camellia-redis-proxy-discovery，相关类包名修改    
+* RedisProxyJedisPool相关类包名修改，代码从camellia-redis移动到camellia-redis-proxy-discovery
+* camellia-redis-proxy的info gc命令修改返回格式，从而支持zgc等垃圾回收器，具体见：[info](/docs/redis-proxy/info.md)
+
+### fix
+* 无
+
+
+# 1.0.43（2021/11/23）
+### 新增
+* camellia-id-gen的segment和strict模式新增更新号段起始值的update接口，具体见：[id-gen](/docs/id-gen/id-gen.md)
+* camellia-id-gen的segment和strict模式，regionId字段支持设置偏移量，具体见：[id-gen](/docs/id-gen/id-gen.md)
+* camellia-id-gen的segment模式支持跨单元同步，具体见：[id-gen-segment](/docs/id-gen/segment.md)
+* camellia-id-gen新增解析regionId、workerId等的接口，具体见：[id-gen](/docs/id-gen/id-gen.md)
+* camellia-redis-proxy支持基于消息队列（kafka等）的异地双写，具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+
+### 更新
+* camellia-redis-proxy的监控数据buffer增加最大size的限制以保护proxy
+* camellia-redis-proxy的自定义ClientAuthProvider抛异常时关闭客户端连接
+
+### fix
+* 修复了camellia-id-gen-strict-spring-boot-starter的cache-key-prefix配置不生效的问题
+
+
+# 1.0.42（2021/10/26）
+### 新增
+* camellia-redis-proxy的info命令修改redis-cluster集群安全性指标的含义，具体见：[info](/docs/redis-proxy/info.md)
+
+### 更新
+* 通过console-api获取慢查询/大key监控数据时支持设置监控数据量的上限，具体见：[monitor-data](/docs/redis-proxy/monitor-data.md)
+
+### fix
+* 无
+
+
+# 1.0.41（2021/10/20）
+### 新增
+* camellia-redis-proxy的info命令修改redis-cluster集群安全性指标的含义，具体见：[info](/docs/redis-proxy/info.md)
+
+### 更新
+* 无
+
+### fix
+* 无
+
+
+# 1.0.40（2021/10/19）
+### 新增
+* camellia-redis-proxy支持使用http-api执行info命令并获取相关信息，具体见：[info](/docs/redis-proxy/info.md)
+* camellia-redis-proxy的info命令新增返回bid/bgroup级别的客户端连接数数据数据，具体见：[info](/docs/redis-proxy/info.md)
+
+### 更新
+* 无
+
+### fix
+* 无
+
+
+# 1.0.39（2021/10/18）
+### 新增
+* camellia-redis-proxy支持配置客户端最大连接数（总连接数限制+bid/bgroup限制），默认不限制，具体见：[客户端连接控制](/docs/redis-proxy/connectlimit.md)
+* camellia-redis-proxy支持配置检测空闲客户端连接并关闭，默认不启用，具体见：[客户端连接控制](/docs/redis-proxy/connectlimit.md)
+* camellia-redis-proxy提供RateLimitCommandInterceptor，可以用于控制客户端请求速率（支持全局级别，也支持bid/bgroup级别），具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+* 使用/monitor获取camellia-redis-proxy的大key监控数据时，支持配置返回json的大小，具体见：[监控数据](/docs/redis-proxy/monitor-data.md)
+* camellia-redis-proxy开放更多netty参数配置，具体见：[netty-conf](/docs/redis-proxy/netty-conf.md)
+* camellia-redis-proxy提供camellia-redis-proxy-nacos-spring-boot-starter用于使用nacos托管proxy配置，具体见：[nacos-conf](/docs/redis-proxy/nacos-conf.md)
+
+### 更新
+* 修改CommandInterceptor所属包名
+
+### fix
+* 无
+
+
+# 1.0.38（2021/10/11）
 ### 新增
 * 新增camellia-id-gen模块，支持：snowflake策略（支持设置单元标记）、基于数据库的id生成策略（支持设置单元标记，趋势递增）、基于数据库和redis的id生成策略（支持设置单元标记，严格递增），具体见：[id-gen](/docs/id-gen/id-gen.md)
 * camellia-redis-proxy支持自定义callback通过spring的@Autowired来自动注入，具体见：[spring-autowire](/docs/redis-proxy/spring-autowire.md)
@@ -83,8 +277,8 @@
 
 # 1.0.33（2021/07/29）
 ### 新增
-* camellia-redis-proxy提供TroubleTrickKeysCommandInterceptor去避免异常key导致后端redis异常（比如业务层bug导致的死循环引起后端redis被打挂，需要临时屏蔽相关请求来保护后端redis），具体见：[控制](/docs/redis-proxy/control.md)
-* camellia-redis-proxy提供MultiWriteCommandInterceptor用于自定义双写策略（比如有些key需要双写，有些key不需要，有些key双写到redisA，有些key双写到redisB），具体见：[控制](/docs/redis-proxy/control.md)
+* camellia-redis-proxy提供TroubleTrickKeysCommandInterceptor去避免异常key导致后端redis异常（比如业务层bug导致的死循环引起后端redis被打挂，需要临时屏蔽相关请求来保护后端redis），具体见：[拦截器](/docs/redis-proxy/interceptor.md)
+* camellia-redis-proxy提供MultiWriteCommandInterceptor用于自定义双写策略（比如有些key需要双写，有些key不需要，有些key双写到redisA，有些key双写到redisB），具体见：[拦截器](/docs/redis-proxy/interceptor.md)
 * camellia-redis-proxy支持DUMP/RESTORE命令
 * CamelliaRedisTemplate支持DUMP/RESTORE命令
 
@@ -370,7 +564,7 @@
 * camellia-redis-proxy支持pub-sub命令
 * camellia-redis-proxy支持集合运算命令，如SINTER/SINTERSTORE/SUNION/SUNIONSTORE/SDIFF/SDIFFSTORE等
 * camellia-redis-proxy支持设置双（多）写的模式，提供了三种方式供选择, 参考com.netease.nim.camellia.redis.proxy.conf.MultiWriteMode以及相关文档
-* camellia-redis-proxy提供了抽象类AbstractSimpleShadingFunc用于自定义分片函数
+* camellia-redis-proxy提供了抽象类AbstractSimpleShardingFunc用于自定义分片函数
 * camellia-redis-proxy-hbase支持了针对zmember到hbase的读穿透的单机频控
 
 ### 更新

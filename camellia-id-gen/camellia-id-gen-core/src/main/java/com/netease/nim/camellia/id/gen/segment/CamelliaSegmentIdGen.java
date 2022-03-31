@@ -1,6 +1,5 @@
 package com.netease.nim.camellia.id.gen.segment;
 
-
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.netease.nim.camellia.id.gen.common.CamelliaIdGenException;
 import com.netease.nim.camellia.id.gen.common.IDLoader;
@@ -19,6 +18,7 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
     private static final Logger logger = LoggerFactory.getLogger(CamelliaSegmentIdGen.class);
 
     private final IDLoader idLoader;
+    private final long regionIdShiftingBits;
     private final int regionBits;
     private final long regionId;
 
@@ -27,8 +27,10 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
         if (idLoader == null) {
             throw new CamelliaIdGenException("idLoader not found");
         }
+        logger.info("CamelliaSegmentIdGen, idLoader = {}", idLoader.getClass().getName());
         this.regionBits = config.getRegionBits();
         this.regionId = config.getRegionId();
+        this.regionIdShiftingBits = config.getRegionIdShiftingBits();
 
         this.step = config.getStep();
         this.cacheMaxCapacity = step * 10;
@@ -38,7 +40,7 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
         this.cacheMap = new ConcurrentLinkedHashMap.Builder<String, LinkedBlockingQueue<Long>>()
                 .initialCapacity(config.getTagCount()).maximumWeightedCapacity(config.getTagCount()).build();
         this.lockMap = new ConcurrentLinkedHashMap.Builder<String, AtomicBoolean>()
-                .initialCapacity(config.getTagCount() * 2).maximumWeightedCapacity(config.getTagCount() * 2).build();
+                .initialCapacity(config.getTagCount() * 2).maximumWeightedCapacity(config.getTagCount() * 2L).build();
         this.asyncLoadThreadPool = config.getAsyncLoadThreadPool();
 
         if (this.regionBits < 0) {
@@ -49,8 +51,12 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
             throw new CamelliaIdGenException("regionId too long");
         }
 
-        logger.info("CamelliaSegmentIdGen init success, regionId = {}, regionBits = {}, step = {}, maxRetry = {}, retryIntervalMillis = {}",
-                regionId, regionBits, step, maxRetry, retryIntervalMillis);
+        logger.info("CamelliaSegmentIdGen init success, regionId = {}, regionBits = {}, regionIdShiftingBits = {}, step = {}, maxRetry = {}, retryIntervalMillis = {}",
+                regionId, regionBits, regionIdShiftingBits, step, maxRetry, retryIntervalMillis);
+    }
+
+    public IDLoader getIdLoader() {
+        return idLoader;
     }
 
     @Override
@@ -58,7 +64,15 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
         try {
             IDRange load = idLoader.load(tag, loadCount);
             for (long i=load.getStart(); i<=load.getEnd(); i++) {
-                long id = (i << regionBits) | regionId;
+                long id;
+                if (regionBits == 0) {
+                    id = i;
+                } else if (regionBits > 0 && regionIdShiftingBits == 0) {
+                    id = (i << regionBits) | regionId;
+                    cache.offer(id);
+                } else {
+                    id = ((i >> regionIdShiftingBits) << (regionIdShiftingBits + regionBits)) | (regionId << regionIdShiftingBits) | (i & ((1L << regionIdShiftingBits) - 1));
+                }
                 cache.offer(id);
             }
             if (logger.isDebugEnabled()) {
@@ -67,6 +81,16 @@ public class CamelliaSegmentIdGen extends AbstractCamelliaSegmentIdGen {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CamelliaIdGenException("load ids from idLoader error", e);
+        }
+    }
+
+    public long decodeRegionId(long id) {
+        if (regionBits == 0) {
+            return -1;
+        } else if (regionBits > 0 && regionIdShiftingBits == 0) {
+            return ((1L << regionBits) - 1) & id;
+        } else {
+            return ((((1L << regionBits) - 1) << regionIdShiftingBits) & id) >> regionIdShiftingBits;
         }
     }
 }

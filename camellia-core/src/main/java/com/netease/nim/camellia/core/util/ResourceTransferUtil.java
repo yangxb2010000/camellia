@@ -37,18 +37,18 @@ public class ResourceTransferUtil {
             newSimpleTable.setResourceOperation(resourceOperation1);
             newResourceTable.setSimpleTable(newSimpleTable);
         } else if (type == ResourceTable.Type.SHADING) {
-            ResourceTable.ShadingTable shadingTable = resourceTable.getShadingTable();
-            ResourceTable.ShadingTable newShadingTable = new ResourceTable.ShadingTable();
-            newShadingTable.setBucketSize(shadingTable.getBucketSize());
+            ResourceTable.ShadingTable shardingTable = resourceTable.getShadingTable();
+            ResourceTable.ShadingTable newShardingTable = new ResourceTable.ShadingTable();
+            newShardingTable.setBucketSize(shardingTable.getBucketSize());
             Map<Integer, ResourceOperation> map = new HashMap<>();
-            for (Map.Entry<Integer, ResourceOperation> entry : shadingTable.getResourceOperationMap().entrySet()) {
+            for (Map.Entry<Integer, ResourceOperation> entry : shardingTable.getResourceOperationMap().entrySet()) {
                 Integer key = entry.getKey();
                 ResourceOperation resourceOperation = entry.getValue();
                 ResourceOperation resourceOperation1 = transfer(resourceOperation, func);
                 map.put(key, resourceOperation1);
             }
-            newShadingTable.setResourceOperationMap(map);
-            newResourceTable.setShadingTable(newShadingTable);
+            newShardingTable.setResourceOperationMap(map);
+            newResourceTable.setShadingTable(newShardingTable);
         }
         return newResourceTable;
     }

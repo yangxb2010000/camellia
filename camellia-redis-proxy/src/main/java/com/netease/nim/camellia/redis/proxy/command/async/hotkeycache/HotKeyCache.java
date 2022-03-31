@@ -1,6 +1,7 @@
 package com.netease.nim.camellia.redis.proxy.command.async.hotkeycache;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.netease.nim.camellia.core.util.CamelliaMapUtils;
 import com.netease.nim.camellia.redis.proxy.command.async.CommandContext;
 import com.netease.nim.camellia.redis.proxy.conf.ProxyDynamicConf;
 import com.netease.nim.camellia.redis.proxy.monitor.HotKeyCacheMonitor;
@@ -78,12 +79,10 @@ public class HotKeyCache {
                         stats.setHitCount(entry.getValue().get());
                         list.add(stats);
                     }
-                    if (!list.isEmpty()) {
-                        HotKeyCacheStats hotKeyCacheStats = new HotKeyCacheStats();
-                        hotKeyCacheStats.setStatsList(list);
-                        HotKeyCacheMonitor.hotKeyCache(commandContext, hotKeyCacheStats, commandHotKeyCacheConfig);
-                        callback.callback(commandContext, hotKeyCacheStats, commandHotKeyCacheConfig);
-                    }
+                    HotKeyCacheStats hotKeyCacheStats = new HotKeyCacheStats();
+                    hotKeyCacheStats.setStatsList(list);
+                    HotKeyCacheMonitor.hotKeyCache(commandContext, hotKeyCacheStats, commandHotKeyCacheConfig);
+                    callback.callback(commandContext, hotKeyCacheStats, commandHotKeyCacheConfig);
                 } catch (Exception e) {
                     logger.error("hot key cache stats callback error", e);
                 }

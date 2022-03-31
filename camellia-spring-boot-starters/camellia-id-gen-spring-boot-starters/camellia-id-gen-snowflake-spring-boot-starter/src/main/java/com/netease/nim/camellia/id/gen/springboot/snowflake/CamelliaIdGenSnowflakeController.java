@@ -27,7 +27,11 @@ public class CamelliaIdGenSnowflakeController {
     @GetMapping("/genId")
     public IdGenResult genId() {
         try {
-            return IdGenResult.success(camelliaSnowflakeIdGen.genId());
+            long id = camelliaSnowflakeIdGen.genId();
+            if (logger.isDebugEnabled()) {
+                logger.debug("genId, id = {}", id);
+            }
+            return IdGenResult.success(id);
         } catch (CamelliaIdGenException e) {
             logger.error(e.getMessage(), e);
             return IdGenResult.error(e.getMessage());
@@ -40,7 +44,62 @@ public class CamelliaIdGenSnowflakeController {
     @GetMapping("/decodeTs")
     public IdGenResult decodeTs(@RequestParam("id") long id) {
         try {
-            return IdGenResult.success(camelliaSnowflakeIdGen.decodeTs(id));
+            long ts = camelliaSnowflakeIdGen.decodeTs(id);
+            if (logger.isDebugEnabled()) {
+                logger.debug("decodeTs, id = {}, ts = {}", id, ts);
+            }
+            return IdGenResult.success(ts);
+        } catch (CamelliaIdGenException e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error(e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error("internal error");
+        }
+    }
+
+    @GetMapping("/decodeRegionId")
+    public IdGenResult decodeRegionId(@RequestParam("id") long id) {
+        try {
+            long regionId = camelliaSnowflakeIdGen.decodeRegionId(id);
+            if (logger.isDebugEnabled()) {
+                logger.debug("decodeRegionId, id = {}, regionId = {}", id, regionId);
+            }
+            return IdGenResult.success(regionId);
+        } catch (CamelliaIdGenException e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error(e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error("internal error");
+        }
+    }
+
+    @GetMapping("/decodeSequence")
+    public IdGenResult decodeSequence(@RequestParam("id") long id) {
+        try {
+            long regionId = camelliaSnowflakeIdGen.decodeSequence(id);
+            if (logger.isDebugEnabled()) {
+                logger.debug("decodeSequence, id = {}, regionId = {}", id, regionId);
+            }
+            return IdGenResult.success(regionId);
+        } catch (CamelliaIdGenException e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error(e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return IdGenResult.error("internal error");
+        }
+    }
+
+    @GetMapping("/decodeWorkerId")
+    public IdGenResult decodeWorkerId(@RequestParam("id") long id) {
+        try {
+            long regionId = camelliaSnowflakeIdGen.decodeWorkerId(id);
+            if (logger.isDebugEnabled()) {
+                logger.debug("decodeWorkerId, id = {}, regionId = {}", id, regionId);
+            }
+            return IdGenResult.success(regionId);
         } catch (CamelliaIdGenException e) {
             logger.error(e.getMessage(), e);
             return IdGenResult.error(e.getMessage());

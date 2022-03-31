@@ -15,6 +15,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by caojiajun on 2019/12/13.
  */
 public class ResourceChooser {
+
+    public static final byte[] EMPTY_ARRAY = new byte[0];
+
     private final ResourceTable resourceTable;
     private final ProxyEnv proxyEnv;
 
@@ -25,6 +28,8 @@ public class ResourceChooser {
     private boolean bucketSizeIs2Power = false;
 
     private final Set<Resource> allResources;
+    private final List<Resource> allReadResources;
+    private final List<Resource> allWriteReources;
 
     private final long createTime = System.currentTimeMillis();
 
@@ -37,6 +42,13 @@ public class ResourceChooser {
             bucketSizeIs2Power = MathUtil.is2Power(bucketSize);
         }
         this.allResources = ResourceUtil.getAllResources(resourceTable);
+        Set<Resource> readResources = new TreeSet<>(Comparator.comparing(Resource::getUrl));
+        readResources.addAll(ResourceUtil.getAllReadResources(resourceTable));
+        Set<Resource> writeResources = new TreeSet<>(Comparator.comparing(Resource::getUrl));
+        readResources.addAll(ResourceUtil.getAllReadResources(resourceTable));
+        writeResources.addAll(ResourceUtil.getAllWriteResources(resourceTable));
+        this.allReadResources = new ArrayList<>(readResources);
+        this.allWriteReources = new ArrayList<>(writeResources);
     }
 
     public ResourceTable getResourceTable() {
@@ -51,17 +63,37 @@ public class ResourceChooser {
         return resourceTable.getType();
     }
 
+    public List<Resource> getAllReadResources() {
+        return allReadResources;
+    }
+
+    public List<Resource> getAllWriteResources() {
+        return allWriteReources;
+    }
+
     public Set<Resource> getAllResources() {
         return allResources;
     }
 
-    public Resource getReadResource(byte[]... shadingParam) {
+    public static Resource getReadResource(ReadResourceBean readResourceBean) {
+        if (readResourceBean == null) return null;
+        if (readResourceBean.resources == null || readResourceBean.resources.isEmpty()) {
+            return null;
+        }
+        if (!readResourceBean.needRandom || readResourceBean.resources.size() == 1) {
+            return readResourceBean.getResources().get(0);
+        }
+        int index = ThreadLocalRandom.current().nextInt(readResourceBean.resources.size());
+        return readResourceBean.resources.get(index);
+    }
+
+    public Resource getReadResource(byte[]... shardingParam) {
         if (readResource != null) {
             return readResource;
         }
         ResourceTable.Type type = resourceTable.getType();
         if (type == ResourceTable.Type.SIMPLE) {
-            ReadResourceBean readResourceBean = _getReadResources(shadingParam);
+            ReadResourceBean readResourceBean = getReadResources(shardingParam);
             if (readResourceBean == null) return null;
             if (!readResourceBean.needRandom || readResourceBean.resources.size() == 1) {
                 readResource = readResourceBean.resources.get(0);
@@ -71,18 +103,12 @@ public class ResourceChooser {
                 return readResourceBean.resources.get(index);
             }
         } else {
-            ReadResourceBean readResourceBean = _getReadResources(shadingParam);
-            if (readResourceBean == null) return null;
-            if (!readResourceBean.needRandom || readResourceBean.resources.size() == 1) {
-                return readResourceBean.resources.get(0);
-            } else {
-                int index = ThreadLocalRandom.current().nextInt(readResourceBean.resources.size());
-                return readResourceBean.resources.get(index);
-            }
+            ReadResourceBean readResourceBean = getReadResources(shardingParam);
+            return getReadResource(readResourceBean);
         }
     }
 
-    private ReadResourceBean _getReadResources(byte[]... shadingParam) {
+    public ReadResourceBean getReadResources(byte[]... shardingParam) {
         if (readResourceBean != null) {
             return readResourceBean;
         }
@@ -93,17 +119,17 @@ public class ResourceChooser {
             this.readResourceBean = getReadResourcesFromOperation(resourceOperation);
             return this.readResourceBean;
         } else {
-            int shadingCode = proxyEnv.getShadingFunc().shadingCode(shadingParam);
-            ResourceTable.ShadingTable shadingTable = resourceTable.getShadingTable();
-            int bucketSize = shadingTable.getBucketSize();
-            Map<Integer, ResourceOperation> operationMap = shadingTable.getResourceOperationMap();
-            int index = MathUtil.mod(bucketSizeIs2Power, Math.abs(shadingCode), bucketSize);
+            int shardingCode = proxyEnv.getShardingFunc().shardingCode(shardingParam);
+            ResourceTable.ShadingTable shardingTable = resourceTable.getShadingTable();
+            int bucketSize = shardingTable.getBucketSize();
+            Map<Integer, ResourceOperation> operationMap = shardingTable.getResourceOperationMap();
+            int index = MathUtil.mod(bucketSizeIs2Power, Math.abs(shardingCode), bucketSize);
             ResourceOperation resourceOperation = operationMap.get(index);
             return getReadResourcesFromOperation(resourceOperation);
         }
     }
 
-    public List<Resource> getWriteResources(byte[]... shadingParam) {
+    public List<Resource> getWriteResources(byte[]... shardingParam) {
         if (writeResources != null) return writeResources;
         ResourceTable.Type type = resourceTable.getType();
         if (type == ResourceTable.Type.SIMPLE) {
@@ -112,11 +138,11 @@ public class ResourceChooser {
             this.writeResources = getWriteResourcesFromOperation(resourceOperation);
             return this.writeResources;
         } else {
-            int shadingCode = proxyEnv.getShadingFunc().shadingCode(shadingParam);
-            ResourceTable.ShadingTable shadingTable = resourceTable.getShadingTable();
-            int bucketSize = shadingTable.getBucketSize();
-            Map<Integer, ResourceOperation> operationMap = shadingTable.getResourceOperationMap();
-            int index = MathUtil.mod(bucketSizeIs2Power, Math.abs(shadingCode), bucketSize);
+            int shardingCode = proxyEnv.getShardingFunc().shardingCode(shardingParam);
+            ResourceTable.ShadingTable shardingTable = resourceTable.getShadingTable();
+            int bucketSize = shardingTable.getBucketSize();
+            Map<Integer, ResourceOperation> operationMap = shardingTable.getResourceOperationMap();
+            int index = MathUtil.mod(bucketSizeIs2Power, Math.abs(shardingCode), bucketSize);
             ResourceOperation resourceOperation = operationMap.get(index);
             return getWriteResourcesFromOperation(resourceOperation);
         }
@@ -159,7 +185,50 @@ public class ResourceChooser {
         throw new IllegalArgumentException();
     }
 
-    private static class ReadResourceBean {
+    public static boolean checkReadResourcesEqual(ResourceChooser.ReadResourceBean readResourceBean1, ResourceChooser.ReadResourceBean readResourceBean2) {
+        if (readResourceBean1 == null || readResourceBean2 == null) {
+            return false;
+        }
+        if (readResourceBean1.isNeedRandom() && !readResourceBean2.isNeedRandom()) {
+            return false;
+        }
+        if (!readResourceBean1.isNeedRandom() && readResourceBean2.isNeedRandom()) {
+            return false;
+        }
+        if (readResourceBean1.getResources() == null || readResourceBean2.getResources() == null) {
+            return false;
+        }
+        if (readResourceBean1.getResources().size() != readResourceBean2.getResources().size()) {
+            return false;
+        }
+        for (int i = 0; i < readResourceBean1.getResources().size(); i++) {
+            Resource resource1 = readResourceBean1.getResources().get(i);
+            Resource resource2 = readResourceBean2.getResources().get(i);
+            if (!resource1.getUrl().equals(resource2.getUrl())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkWriteResourcesEqual(List<Resource> resources1, List<Resource> resources2) {
+        if (resources1 == null || resources2 == null) {
+            return false;
+        }
+        if (resources1.size() != resources2.size()) {
+            return false;
+        }
+        for (int i = 0; i < resources1.size(); i++) {
+            Resource resource1 = resources1.get(i);
+            Resource resource2 = resources2.get(i);
+            if (!resource1.getUrl().equals(resource2.getUrl())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static class ReadResourceBean {
         private final boolean needRandom;
         private final List<Resource> resources;
 
@@ -167,5 +236,14 @@ public class ResourceChooser {
             this.needRandom = needRandom;
             this.resources = resources;
         }
+
+        public boolean isNeedRandom() {
+            return needRandom;
+        }
+
+        public List<Resource> getResources() {
+            return resources;
+        }
+
     }
 }

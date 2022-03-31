@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
+
 /**
  * Created by caojiajun on 2021/9/27
  */
@@ -24,6 +25,7 @@ public class CamelliaIdGenSegmentConfiguration {
         CamelliaSegmentIdGenConfig config = new CamelliaSegmentIdGenConfig();
         config.setRegionBits(properties.getRegionBits());
         config.setRegionId(properties.getRegionId());
+        config.setRegionIdShiftingBits(properties.getRegionIdShiftingBits());
         config.setMaxRetry(properties.getMaxRetry());
         config.setRetryIntervalMillis(properties.getRetryIntervalMillis());
         config.setTagCount(properties.getTagCount());
@@ -31,4 +33,10 @@ public class CamelliaIdGenSegmentConfiguration {
         config.setIdLoader(idLoader);
         return new CamelliaSegmentIdGen(config);
     }
+
+    @Bean
+    public IdSyncInMultiRegionService idSyncInMultiRegionService(CamelliaIdGenSegmentProperties properties) {
+        return new IdSyncInMultiRegionService(idLoader, properties.getIdSyncInMultiRegionsConf());
+    }
+
 }

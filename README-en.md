@@ -6,86 +6,47 @@ Camellia is originally develop as basic architecture for netease-yunxin's server
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 ![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.netease.nim/camellia/badge.svg)
   
-
-## Catalog
-├─`camellia-core`   
-├─`camellia-dashboard`    
-├─`camellia-hbase`  
-├─`camellia-redis`  
-├─`camellia-redis-proxy`   
-├─`camellia-redis-proxy-hbase`  
-├─`camellia-tools`    
-├─`camellia-id-gen`  
-│ ├─`camellia-id-gen-core`   
-│ ├─`camellia-id-gen-sdk`      
-├─`camellia-redis-zk`  
-│ ├─`camellia-redis-zk-common`  
-│ ├─`camellia-redis-zk-discovery`  
-│ ├─`camellia-redis-zk-registry`    
-├─`camellia-samples`               
-│ ├─`camellia-core-samples`  
-│ ├─`camellia-dashboard-samples`  
-│ ├─`camellia-redis-samples`  
-│ ├─`camellia-id-gen-snowflake-samples`    
-│ ├─`camellia-id-gen-strict-samples`    
-│ ├─`camellia-id-gen-segment-samples`    
-│ ├─`camellia-redis-proxy-samples`   
-│ ├─`camellia-redis-proxy-hbase-samples`  
-│ ├─`camellia-hbase-samples`   
-│ ├─`camellia-spring-redis-samples`   
-├─`camellia-spring-boot-starters`               
-│ ├─`camellia-dashboard-spring-boot-starter`  
-│ ├─`camellia-hbase-spring-boot-starter`  
-│ ├─`camellia-redis-eureka-base`  
-│ ├─`camellia-redis-eureka-spring-boot-starter`  
-│ ├─`camellia-redis-proxy-hbase-spring-boot-starter`  
-│ ├─`camellia-redis-proxy-spring-boot-starter`  
-│ ├─`camellia-redis-spring-temaplate-adaptor-spring-boot-starter`   
-│ ├─`camellia-redis-proxy-zk-registry-spring-boot-starter`                     
-│ ├─`camellia-redis-spring-boot-starter`  
-│ ├─`camellia-redis-spring-boot-starter`  
-│ ├─`camellia-redis-zk-discovery-spring-boot-starter`    
-│ ├─`camellia-spring-redis-base`         
-│ ├─`camellia-spring-redis-eureka-discovery-spring-boot-starter`     
-│ ├─`camellia-spring-redis-zk-discovery-spring-boot-starter`  
-│ ├─`camellia-spring-redis-id-gen-snowflake-spring-boot-starter`   
-│ ├─`camellia-spring-redis-id-gen-strict-spring-boot-starter`   
-│ ├─`camellia-spring-redis-id-gen-segment-spring-boot-starter`  
-                     
 ## Instruction
-### 1、camellia-core  
-base on cglib, support client shading/read-write-separate/double-write  
-[QUICK START](/docs/core/core.md)  
-### 2、camellia-dashboard  
-a web service, depends on mysql/redis，manage camellia-core's config，client can get and update config from dashboard  
-[QUICK START](/docs/dashboard/dashboard.md)  
-### 3、camellia-redis  
-base on camellia-core and jedis，main class is CamelliaRedisTemplate, can invoke redis/redis-sentinel/redis-cluster in identical way，support pipeline    
-support client shading/read-write-separate/double-write   
+### camellia-redis  
+base on camellia-core and jedis(2.9.3)，main class is CamelliaRedisTemplate, can invoke redis/redis-sentinel/redis-cluster in identical way，support pipeline    
+support client sharding/read-write-separate/double-write   
 support jedis adaptor to migrate from jedis easily   
 support spring-redis-template adaptor  
 [QUICK START](/docs/redis-template/redis-template.md)
-### 4、camellia-redis-proxy  
+### camellia-redis-proxy  
 base on netty4, support redis/redis-sentinel/redis-cluster  
-support shading/read-write-separate/double-write on proxy  
+support sharding/read-write-separate/double-write on proxy  
 support multi-route-conf            
 support tps/rt/big-key/hot-key/slow-command monitor  
 support custom command interceptor, support hot-key-cache(GET command)，support value converter and so on    
 [QUICK START](/docs/redis-proxy/redis-proxy-en.md)  
-### 5、camellia-hbase  
+### camellia-hbase  
 base on camellia-core and hbase-client，main class is CamelliaHBaseTemplate    
 support client read-write-separate/double-write  
 [QUICK START](/docs/hbase-template/hbase-template.md)  
-### 6、camellia-redis-proxy-hbase    
-base on camellia-redis-proxy、CamelliaRedisTemplate、CamelliaHBaseTemplate, support hot-code-sepatation on redis string/hash/zset commands  
-[QUICK START](/docs/redis-proxy-hbase/redis-proxy-hbase.md)  
-### 7、camellia-tools  
-provide some tools, such as compress utils CamelliaCompressor, encrypt utils CamelliaEncryptor, local cache utils CamelliaLoadingCache       
+### camellia-id-gen
+provide some id gen algorithm, such as snowflake、segment、strict       
+[QUICK START](/docs/id-gen/id-gen.md)
+### camellia-tools  
+provide some tools, such as：    
+compress utils CamelliaCompressor   
+encrypt utils CamelliaEncryptor   
+local cache utils CamelliaLoadingCache   
+thread pool utils CamelliaHashedExecutor   
 [QUICK START](/docs/tools/tools.md)   
 
+### camellia-feign
+join camellia-core and open-feign, so your feign-client have this feature: 
+* support dynamic route
+* support multi-write
+* support dynamic timeout conf
+
 ## Version
-latest version is 1.0.37，have deploy to maven central repository on 2021/09/24  
+latest version is 1.0.53, have deploy to maven central repository on 2022/03/24  
 [CHANGE_LOG](/update-en.md)  
+
+## User List
+If you are using Camellia and feel it helps or you'd like to do some contributions, please add your company to [user list](https://github.com/netease-im/camellia/issues/10) and let us know your needs 
 
 ## Contact
 wechat-id: hdnxttl  

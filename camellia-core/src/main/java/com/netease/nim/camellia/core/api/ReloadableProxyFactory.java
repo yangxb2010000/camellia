@@ -52,12 +52,8 @@ public class ReloadableProxyFactory<T> {
             env = proxyEnv;
         }
         reload(true);
-        Executors.newSingleThreadScheduledExecutor(new CamelliaThreadFactory(ReloadableProxyFactory.class)).scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                reload(false);
-            }
-        }, checkIntervalMillis, checkIntervalMillis, TimeUnit.MILLISECONDS);
+        Executors.newSingleThreadScheduledExecutor(new CamelliaThreadFactory(ReloadableProxyFactory.class))
+                .scheduleAtFixedRate(() -> reload(false), checkIntervalMillis, checkIntervalMillis, TimeUnit.MILLISECONDS);
     }
 
     public void reload(boolean throwError) {
@@ -122,8 +118,8 @@ public class ReloadableProxyFactory<T> {
     }
 
     /**
-     * 暴露给上层一个通过shadingKey选择Proxy的方法，一般用不上
-     * @param key shadingKey
+     * 暴露给上层一个通过shardingKey选择Proxy的方法，一般用不上
+     * @param key shardingKey
      * @return 代理对象
      */
     public T chooseProxy(byte[]... key) {

@@ -16,6 +16,7 @@ import com.netease.nim.camellia.dashboard.model.TableRef;
 import com.netease.nim.camellia.dashboard.model.ValidFlag;
 import com.netease.nim.camellia.dashboard.util.LogBean;
 import com.netease.nim.camellia.dashboard.util.ResourceInfoTidsUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +82,7 @@ public class TableService {
                 resourceInfo.setCreateTime(now);
                 resourceInfo.setUpdateTime(now);
                 int insert = resourceInfoDaoWrapper.save(resourceInfo);
-                LogBean.get().addProps("resource.url=[" + resource.getUrl() + "].insert", insert);
+                LogBean.get().addDebugProps("resource.url=[" + resource.getUrl() + "].insert", insert);
             } else {
                 String tids = resourceInfo.getTids();
                 Set<Long> set = ResourceInfoTidsUtil.parseTids(tids);
@@ -89,7 +90,7 @@ public class TableService {
                 resourceInfo.setTids(ResourceInfoTidsUtil.toString(set));
                 resourceInfo.setUpdateTime(now);
                 int update = resourceInfoDaoWrapper.save(resourceInfo);
-                LogBean.get().addProps("resource.url=[" + resource.getUrl() + "].update", update);
+                LogBean.get().addDebugProps("resource.url=[" + resource.getUrl() + "].update", update);
             }
         }
         return table;
@@ -143,11 +144,11 @@ public class TableService {
         for (Resource resource : allResources) {
             ResourceInfo resourceInfo = resourceInfoDaoWrapper.getByUrl(resource.getUrl());
             if (resourceInfo == null) continue;
-            String tids = resourceInfo.getTids();
-            Set<Long> set = ResourceInfoTidsUtil.parseTids(tids);
+            Set<Long> set = ResourceInfoTidsUtil.parseTids(resourceInfo.getTids());
             set.remove(tid);
+            resourceInfo.setTids(ResourceInfoTidsUtil.toString(set));
             int update = resourceInfoDaoWrapper.save(resourceInfo);
-            LogBean.get().addProps("resource.url=[" + resource.getUrl() + "].update", update);
+            LogBean.get().addDebugProps("resource.url=[" + resource.getUrl() + "].update", update);
         }
         return delete;
     }

@@ -87,6 +87,42 @@ redis-sentinel-slaves://username:passwd@127.0.0.1:16379,127.0.0.1:16379/masterNa
 ##redis-sentinel-slaves会自动感知：节点宕机、主从切换和节点扩容
 ```
 
+* redis-cluster-slaves
+```
+##本类型的后端只能配置为读写分离模式下的读地址，如果配置为写地址，proxy不会报错，但是每次写请求都会产生一次重定向，性能会大大受影响
+
+##不读master，此时proxy会从slave集合中随机挑选一个slave进行命令的转发
+##有密码
+redis-cluster-slaves://passwd@127.0.0.1:16379,127.0.0.1:16379?withMaster=false
+##没有密码
+redis-cluster-slaves://@127.0.0.1:16379,127.0.0.1:16379?withMaster=false
+##有账号也有密码
+redis-cluster-slaves://username:passwd@127.0.0.1:16379,127.0.0.1:16379?withMaster=false
+
+##读master，此时proxy会从master+slave集合中随机挑选一个节点进行命令的转发（可能是master也可能是slave，所有节点概率相同）
+##有密码
+redis-cluster-slaves://passwd@127.0.0.1:16379,127.0.0.1:16379?withMaster=true
+##没有密码
+redis-cluster-slaves://@127.0.0.1:16379,127.0.0.1:16379?withMaster=true
+##有账号也有密码
+redis-cluster-slaves://username:passwd@127.0.0.1:16379,127.0.0.1:16379?withMaster=true
+
+##redis-cluster-slaves会自动感知：节点宕机、主从切换和节点扩容
+```
+
+* redis-proxies
+```
+##本类型主要是为了代理到多个无状态的proxy节点，如codis-proxy、twemproxy等，camellia-redis-proxy会从配置的多个node中随机选择一个进行转发
+##当后端的proxy node有宕机时，camellia-redis-proxy会动态剔除相关节点，如果节点恢复了则会动态加回
+
+##有密码
+redis-proxies://passwd@127.0.0.1:6379,127.0.0.2:6379,127.0.0.3:6379
+##没有密码
+redis-proxies://@127.0.0.1:6379,127.0.0.2:6379,127.0.0.3:6379
+##有账号也有密码
+redis-proxies://username:passwd@127.0.0.1:6379,127.0.0.2:6379,127.0.0.3:6379
+```
+
 ### 动态配置
 如果你希望你的proxy的路由配置可以动态变更，比如本来路由到redisA，然后动态的切换成redisB，那么你需要一个额外的配置文件，并且在application.yml中引用，如下：
 ```yaml
@@ -171,10 +207,10 @@ redis://passwd@127.0.0.1:6379
 * 写命令会代理到redis-sentinel://passwd123@127.0.0.1:26379/master  
 * 读命令会代理到redis-sentinel-slaves://passwd123@127.0.0.1:26379/master?withMaster=true，也就是redis-sentinel://passwd123@127.0.0.1:26379/master的主节点和所有从节点
 
-#### 配置分片
+#### 配置分片（因为之前命名错误，1.0.45及之前的版本，使用shading，1.0.46及之后的版本兼容sharding/shading）
 ```json
 {
-  "type": "shading",
+  "type": "sharding",
   "operation": {
     "operationMap": {
       "0-2-4": "redis://password1@127.0.0.1:6379",
@@ -230,10 +266,10 @@ redis://passwd@127.0.0.1:6379
 * 所有的写命令（如setex/zadd/hset）代理到redis://passwd1@127.0.0.1:6379  
 * 所有的读命令（如get/zrange/mget）随机代理到redis://passwd1@127.0.0.1:6379或者redis://password2@127.0.0.1:6380
 
-#### 混合各种分片、双写逻辑
+#### 混合各种分片、双写逻辑（因为之前命名错误，1.0.45及之前的版本，使用shading，1.0.46及之后的版本兼容sharding/shading）
 ```json
 {
-  "type": "shading",
+  "type": "sharding",
   "operation": {
     "operationMap": {
       "4": {
@@ -539,17 +575,26 @@ camellia-redis-proxy:
 
 ### 自定义分片函数
 你可以自定义分片函数，分片函数会计算出一个key的哈希值，和分片大小（bucketSize）取余后，得到该key所属的分片。  
-默认的分片函数是com.netease.nim.camellia.core.client.env.DefaultShadingFunc  
-你可以继承com.netease.nim.camellia.core.client.env.AbstractSimpleShadingFunc实现自己想要的分片函数，类似于这样：  
+默认的分片函数是：  
+```
+com.netease.nim.camellia.core.client.env.DefaultShardingFunc
+```  
+默认的分片函数是不支持HashTag的，如果你想使用HashTag，可以使用如下两个分片函数：  
+```
+com.netease.nim.camellia.core.client.env.CRC16HashTagShardingFunc
+com.netease.nim.camellia.core.client.env.DefaultHashTagShardingFunc
+```
+此外，你也可以继承com.netease.nim.camellia.core.client.env.AbstractSimpleShardingFunc实现自己想要的分片函数，类似于这样：  
+
 ```java
 package com.netease.nim.camellia.redis.proxy.samples;
 
-import com.netease.nim.camellia.core.client.env.AbstractSimpleShadingFunc;
+import com.netease.nim.camellia.core.client.env.AbstractSimpleShardingFunc;
 
-public class CustomShadingFunc extends AbstractSimpleShadingFunc {
+public class CustomShardingFunc extends AbstractSimpleShardingFunc {
     
     @Override
-    public int shadingCode(byte[] key) {
+    public int shardingCode(byte[] key) {
         if (key == null) return 0;
         if (key.length == 0) return 0;
         int h = 0;
@@ -576,5 +621,5 @@ camellia-redis-proxy:
       type: complex
       json-file: resource-table.json
     redis-conf:
-      shading-func: com.netease.nim.camellia.redis.proxy.samples.CustomShadingFunc
+      sharding-func: com.netease.nim.camellia.redis.proxy.samples.CustomShardingFunc #1.0.45及以前版本，配置项叫shading-func；1.0.46及以后版本，配置项叫sharding-func
 ```

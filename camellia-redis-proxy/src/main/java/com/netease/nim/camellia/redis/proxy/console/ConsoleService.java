@@ -21,5 +21,9 @@ public interface ConsoleService {
 
     ConsoleResult reload();
 
+    ConsoleResult info(Map<String, List<String>> params);
+
     ConsoleResult custom(Map<String, List<String>> params);
+
+    ConsoleResult detect(Map<String, List<String>> params);
 }

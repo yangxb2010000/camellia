@@ -11,9 +11,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class NettyProperties {
     private int bossThread = 1;
     private int workThread = -1;
+    private boolean tcpNoDelay = Constants.Server.tcpNoDelay;
     private int soBacklog = Constants.Server.soBacklog;
     private int soSndbuf = Constants.Server.soSndbuf;
     private int soRcvbuf = Constants.Server.soRcvbuf;
+    private boolean soKeepalive = Constants.Server.soKeepalive;
+    private int readerIdleTimeSeconds = Constants.Server.readerIdleTimeSeconds;
+    private int writerIdleTimeSeconds = Constants.Server.writerIdleTimeSeconds;
+    private int allIdleTimeSeconds = Constants.Server.allIdleTimeSeconds;
     private int writeBufferWaterMarkLow = Constants.Server.writeBufferWaterMarkLow;
     private int writeBufferWaterMarkHigh = Constants.Server.writeBufferWaterMarkHigh;
     private int commandDecodeMaxBatchSize = Constants.Server.commandDecodeMaxBatchSize;
@@ -33,6 +38,14 @@ public class NettyProperties {
 
     public void setWorkThread(int workThread) {
         this.workThread = workThread;
+    }
+
+    public boolean isTcpNoDelay() {
+        return tcpNoDelay;
+    }
+
+    public void setTcpNoDelay(boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
     }
 
     public int getCommandDecodeMaxBatchSize() {
@@ -90,4 +103,37 @@ public class NettyProperties {
     public void setWriteBufferWaterMarkHigh(int writeBufferWaterMarkHigh) {
         this.writeBufferWaterMarkHigh = writeBufferWaterMarkHigh;
     }
+
+    public boolean isSoKeepalive() {
+        return soKeepalive;
+    }
+
+    public void setSoKeepalive(boolean soKeepalive) {
+        this.soKeepalive = soKeepalive;
+    }
+
+    public int getReaderIdleTimeSeconds() {
+        return readerIdleTimeSeconds;
+    }
+
+    public void setReaderIdleTimeSeconds(int readerIdleTimeSeconds) {
+        this.readerIdleTimeSeconds = readerIdleTimeSeconds;
+    }
+
+    public int getWriterIdleTimeSeconds() {
+        return writerIdleTimeSeconds;
+    }
+
+    public void setWriterIdleTimeSeconds(int writerIdleTimeSeconds) {
+        this.writerIdleTimeSeconds = writerIdleTimeSeconds;
+    }
+
+    public int getAllIdleTimeSeconds() {
+        return allIdleTimeSeconds;
+    }
+
+    public void setAllIdleTimeSeconds(int allIdleTimeSeconds) {
+        this.allIdleTimeSeconds = allIdleTimeSeconds;
+    }
+
 }

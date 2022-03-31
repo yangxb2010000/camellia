@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>camellia-redis-samples</artifactId>
-	<version>1.0.38-SNAPSHOT</version>
+	<version>1.0.54-SNAPSHOT</version>
 
 	<parent>
 		<groupId>com.netease.nim</groupId>
 		<artifactId>camellia-samples</artifactId>
-		<version>1.0.38-SNAPSHOT</version>
+		<version>1.0.54-SNAPSHOT</version>
 	</parent>
 
 	<dependencyManagement>
@@ -28,22 +28,22 @@
 		<dependency>
 			<groupId>com.netease.nim</groupId>
 			<artifactId>camellia-redis-spring-boot-starter</artifactId>
-			<version>1.0.38-SNAPSHOT</version>
+			<version>1.0.54-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.netease.nim</groupId>
 			<artifactId>camellia-spring-redis-base</artifactId>
-			<version>1.0.38-SNAPSHOT</version>
+			<version>1.0.54-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.netease.nim</groupId>
 			<artifactId>camellia-redis-zk-discovery-spring-boot-starter</artifactId>
-			<version>1.0.38-SNAPSHOT</version>
+			<version>1.0.54-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.netease.nim</groupId>
 			<artifactId>camellia-redis-spring-temaplate-adaptor-spring-boot-starter</artifactId>
-			<version>1.0.38-SNAPSHOT</version>
+			<version>1.0.54-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -60,6 +60,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
+				<version>3.0.0-M1</version>
 				<configuration>
 					<skip>true</skip>
 				</configuration>

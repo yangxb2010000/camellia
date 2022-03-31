@@ -10,10 +10,17 @@ import net.sf.cglib.proxy.MethodInterceptor;
  */
 public class ProxyClientFactory {
 
-    public static <T> T createProxy(Class<T> clazz, Class[] argumentTypes, final Object[] arguments, MethodInterceptor callback) {
+    public static <T> T createProxy(Class<T> clazz, Class<?>[] argumentTypes, final Object[] arguments, MethodInterceptor callback) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
         enhancer.setCallback(callback);
         return (T) enhancer.create(argumentTypes, arguments);
+    }
+
+    public static <T> T createProxy(Class<T> clazz, MethodInterceptor callback) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(clazz);
+        enhancer.setCallback(callback);
+        return (T) enhancer.create();
     }
 }

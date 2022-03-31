@@ -645,4 +645,18 @@ public interface ICamelliaRedisTemplate {
     Jedis getWriteJedis(String... keys);
 
     Jedis getReadJedis(String... keys);
+
+    List<Jedis> getJedisList();
+
+    List<Jedis> getWriteJedisList();
+
+    List<Jedis> getReadJedisList();
+
+    <T> T executeRead(CamelliaRedisCommandTask<T> task, String... keys);
+
+    <T> T executeRead(CamelliaRedisCommandTask<T> task, byte[]... keys);
+
+    <T> T executeWrite(CamelliaRedisCommandTask<T> task, String... keys);
+
+    <T> T executeWrite(CamelliaRedisCommandTask<T> task, byte[]... keys);
 }

@@ -24,6 +24,12 @@ public enum RedisType {
     //格式：redis-sentinel-slaves://password@127.0.0.1:6379,127.0.0.1:6380/masterName?withMaster=true
     RedisSentinelSlaves("redis-sentinel-slaves://"),
 
+    //格式：redis-cluster-slaves://password@127.0.0.1:6379,127.0.0.1:6380?withMaster=true
+    RedisClusterSlaves("redis-cluster-slaves://"),
+
+    //格式：redis-proxies://password@127.0.0.1:6379,127.0.0.1:6380
+    RedisProxies("redis-proxies://"),//camellia-redis-proxy会随机挑选一个proxy节点，并当做普通redis去访问
+
     ;
     private final String prefix;
 

@@ -5,6 +5,7 @@ import com.netease.nim.camellia.redis.proxy.command.ClientCommandUtil;
 import com.netease.nim.camellia.redis.proxy.command.Command;
 import com.netease.nim.camellia.redis.proxy.command.HelloCommandUtil;
 import com.netease.nim.camellia.redis.proxy.command.async.bigkey.BigKeyHunter;
+import com.netease.nim.camellia.redis.proxy.command.async.connectlimit.ConnectLimiterHolder;
 import com.netease.nim.camellia.redis.proxy.command.async.converter.Converters;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkey.HotKeyHunter;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkey.HotKeyHunterManager;
@@ -12,8 +13,11 @@ import com.netease.nim.camellia.redis.proxy.command.async.hotkeycache.HotKeyCach
 import com.netease.nim.camellia.redis.proxy.command.async.hotkeycache.HotKeyCacheManager;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkeycache.HotValue;
 import com.netease.nim.camellia.redis.proxy.command.async.info.ProxyInfoUtils;
+import com.netease.nim.camellia.redis.proxy.command.async.interceptor.CommandInterceptResponse;
+import com.netease.nim.camellia.redis.proxy.command.async.interceptor.CommandInterceptor;
 import com.netease.nim.camellia.redis.proxy.command.async.spendtime.CommandSpendTimeConfig;
 import com.netease.nim.camellia.redis.proxy.enums.RedisCommand;
+import com.netease.nim.camellia.redis.proxy.monitor.ChannelMonitor;
 import com.netease.nim.camellia.redis.proxy.monitor.RedisMonitor;
 import com.netease.nim.camellia.redis.proxy.netty.ChannelInfo;
 import com.netease.nim.camellia.redis.proxy.reply.BulkReply;
@@ -155,14 +159,24 @@ public class CommandsTransponder {
                 }
 
                 if (redisCommand == RedisCommand.AUTH) {
+                    boolean hasBidBgroup = channelInfo.getBid() != null && channelInfo.getBgroup() != null;
                     Reply reply = authCommandProcessor.invokeAuthCommand(channelInfo, command);
+                    if (!hasBidBgroup) {
+                        boolean pass = checkConnectLimit(channelInfo);
+                        if (!pass) return;
+                    }
                     task.replyCompleted(reply);
                     hasCommandsSkip = true;
                     continue;
                 }
 
                 if (redisCommand == RedisCommand.HELLO) {
+                    boolean hasBidBgroup = channelInfo.getBid() != null && channelInfo.getBgroup() != null;
                     Reply reply = HelloCommandUtil.invokeHelloCommand(channelInfo, authCommandProcessor, command);
+                    if (!hasBidBgroup) {
+                        boolean pass = checkConnectLimit(channelInfo);
+                        if (!pass) return;
+                    }
                     task.replyCompleted(reply);
                     hasCommandsSkip = true;
                     continue;
@@ -200,7 +214,12 @@ public class CommandsTransponder {
                 }
 
                 if (redisCommand == RedisCommand.CLIENT) {
+                    boolean hasBidBgroup = channelInfo.getBid() != null && channelInfo.getBgroup() != null;
                     Reply reply = ClientCommandUtil.invokeClientCommand(channelInfo, command);
+                    if (!hasBidBgroup) {
+                        boolean pass = checkConnectLimit(channelInfo);
+                        if (!pass) return;
+                    }
                     task.replyCompleted(reply);
                     hasCommandsSkip = true;
                     continue;
@@ -265,11 +284,36 @@ public class CommandsTransponder {
             }
             flush(channelInfo.getBid(), channelInfo.getBgroup(), tasks, commands);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("commands transponder error, client connect will be force closed, bid = {}, bgroup = {}, addr = {}",
+                    channelInfo.getBid(), channelInfo.getBgroup(), channelInfo.getCtx().channel().remoteAddress(), e);
             channelInfo.getCtx().close();
         }
     }
 
+    private boolean checkConnectLimit(ChannelInfo channelInfo) {
+        try {
+            if (ConnectLimiterHolder.connectLimiter == null) return true;
+            Long bid = channelInfo.getBid();
+            String bgroup = channelInfo.getBgroup();
+            if (bid != null && bgroup != null) {
+                int currentConnect = ChannelMonitor.bidBgroupConnect(bid, bgroup);
+                int threshold = ConnectLimiterHolder.connectLimiter.connectThreshold(bid, bgroup);
+                if (currentConnect >= threshold) {
+                    ChannelHandlerContext ctx = channelInfo.getCtx();
+                    ctx.writeAndFlush(ErrorReply.TOO_MANY_CONNECTS)
+                            .addListener((ChannelFutureListener) future -> ctx.close());
+                    logger.warn("too many connects, connect will be force closed, bid = {}, bgroup = {}, current = {}, max = {}, consid = {}, client.addr = {}",
+                            bid, bgroup, currentConnect, threshold, channelInfo.getConsid(), channelInfo.getCtx().channel().remoteAddress());
+                    return false;
+                }
+                ChannelMonitor.initBidBgroup(bid, bgroup, channelInfo);
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return true;
+        }
+    }
 
     private void flush(Long bid, String bgroup, List<AsyncTask> tasks, List<Command> commands) {
         try {

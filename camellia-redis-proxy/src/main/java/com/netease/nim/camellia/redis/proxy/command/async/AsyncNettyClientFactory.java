@@ -48,6 +48,15 @@ public interface AsyncNettyClientFactory {
             return client;
         }
 
+        public AsyncClient get(RedisClusterSlavesResource redisClusterSlavesResource) {
+            AsyncClient client = map.get(redisClusterSlavesResource.getUrl());
+            if (client == null) {
+                client = map.computeIfAbsent(redisClusterSlavesResource.getUrl(),
+                        k -> new AsyncCamelliaRedisClusterClient(redisClusterSlavesResource, maxAttempts));
+            }
+            return client;
+        }
+
         public AsyncClient get(RedisSentinelResource redisSentinelResource) {
             AsyncClient client = map.get(redisSentinelResource.getUrl());
             if (client == null) {
@@ -62,6 +71,15 @@ public interface AsyncNettyClientFactory {
             if (client == null) {
                 client = map.computeIfAbsent(redisSentinelSlavesResource.getUrl(),
                         k -> new AsyncCamelliaRedisSentinelSlavesClient(redisSentinelSlavesResource));
+            }
+            return client;
+        }
+
+        public AsyncClient get(RedisProxiesResource redisProxiesResource) {
+            AsyncClient client = map.get(redisProxiesResource.getUrl());
+            if (client == null) {
+                client = map.computeIfAbsent(redisProxiesResource.getUrl(),
+                        k -> new AsyncCameliaRedisProxiesClient(redisProxiesResource));
             }
             return client;
         }
@@ -82,6 +100,10 @@ public interface AsyncNettyClientFactory {
                             client = get((RedisSentinelResource) resource);
                         } else if (resource instanceof RedisSentinelSlavesResource) {
                             client = get((RedisSentinelSlavesResource) resource);
+                        } else if (resource instanceof RedisClusterSlavesResource) {
+                            client = get((RedisClusterSlavesResource) resource);
+                        } else if (resource instanceof RedisProxiesResource) {
+                            client = get((RedisProxiesResource) resource);
                         } else {
                             throw new CamelliaRedisException("not support resource");
                         }

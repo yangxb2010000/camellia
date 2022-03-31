@@ -10,14 +10,14 @@ camellia-redis-proxy是一款高性能的redis代理，使用netty4开发
 * 支持pubsub命令
 * 支持事务命令（MULTI/EXEC/DISCARD/WATCH/UNWATCH），当前仅当代理到redis/redis-sentinel且无分片/无读写分离时支持
 * 支持redis5.0的Streams命令
-* 支持SCAN命令（代理到redis/redis-sentinel/redis-cluster均支持）
+* 支持SCAN命令（代理到redis/redis-sentinel/redis-cluster均支持，自定义分片时也支持）
 * 支持自定义分片
 * 支持读写分离
-* 支持读slave（redis-sentinel的主从模式下，支持配置读slave，且proxy能自动感知节点宕机、主从切换和从节点扩容）
-* 支持双（多）写
+* 支持读slave（redis-sentinel/redis-cluster均支持配置读从节点）
+* 支持双（多）写，可以直接双写，也可以基于mq（如kafka）双写
 * 支持双（多）读
 * 支持路由配置在线变更
-* 支持多配置，即业务A路由到redis1，B业务路由到redis2
+* 支持多配置，即业务A路由到redis1，B业务路由到redis2（可以通过不同的clientname区分，也可以通过不同的password区分）
 * 支持自定义方法拦截器，可以用于实现一些自定义规则（如自定义key/value不得超过多少字节、临时屏蔽某些key不能被访问、或者基于拦截器自定义双写策略等）
 * 支持监控，可以监控各命令的调用量、方法耗时等，支持设置监控回调MonitorCallback
 * 支持慢查询监控，支持设置SlowCommandMonitorCallback
@@ -32,13 +32,14 @@ camellia-redis-proxy是一款高性能的redis代理，使用netty4开发
 * 提供了一个spring-boot-starter，可以快速搭建proxy集群
 * 提供了一个默认的注册发现实现组件（依赖zookeeper），如果端侧是java，则可以很简单的将JedisPool替换为RedisProxyJedisPool，即可接入redis proxy  
 * 提供了一个spring-boot-starter用于SpringRedisTemplate以注册发现模式接入proxy
+* 支持整合hbase实现string/zset/set等数据结构的冷热分离存储操作，具体见: [redis-proxy-hbase](/docs/redis-proxy-hbase/redis-proxy-hbase.md)
 
 ## 支持的命令
 * 完整支持
 ```
 ##DataBase
 PING,AUTH,HELLO,ECHO,CLIENT,QUIT,EXISTS,DEL,TYPE,EXPIRE,
-EXPIREAT,TTL,PERSIST,PEXPIRE,PEXPIREAT,PTTL,SORT,UNLINK,TOUCH,DUMP,RESTORE,
+EXPIREAT,TTL,PERSIST,PEXPIRE,PEXPIREAT,PTTL,SORT,UNLINK,TOUCH,DUMP,RESTORE,SCAN,
 ##String
 SET,GET,GETSET,MGET,SETNX,SETEX,MSET,DECRBY,DECR,INCRBY,INCR,APPEND,
 STRLEN,INCRBYFLOAT,PSETEX,SETRANGE,GETRANGE,SUBSTR,GETEX,GETDEL,
@@ -95,7 +96,7 @@ GEOSEARCHSTORE,
 当前仅当路由后端是单个redis或者单个redis-sentinel或者单个redis-cluster  
 ```
 ##PUBSUB
-SUBSCRIBE,PUBLISH,UNSUBSCRIBE,PSUBSCRIBE,PUNSUBSCRIBE,PUBSUB,SCAN,
+SUBSCRIBE,PUBLISH,UNSUBSCRIBE,PSUBSCRIBE,PUNSUBSCRIBE,PUBSUB,
 ```
 
 * 部分支持2
@@ -107,12 +108,12 @@ MULTI,DISCARD,EXEC,WATCH,UNWATCH,
 ``` 
 
 ## 快速开始一
-1) 首先创建一个spring-boot的工程，然后添加以下依赖（最新1.0.37），如下：（see [sample-code](/camellia-samples/camellia-redis-proxy-samples)）:   
+1) 首先创建一个spring-boot的工程，然后添加以下依赖（最新1.0.53），如下：（see [sample-code](/camellia-samples/camellia-redis-proxy-samples)）:   
 ```
 <dependency>
   <groupId>com.netease.nim</groupId>
   <artifactId>camellia-redis-proxy-spring-boot-starter</artifactId>
-  <version>1.0.37</version>
+  <version>1.0.53</version>
 </dependency>
 ```
 2) 编写主类Application.java, 如下: 
@@ -186,11 +187,20 @@ OK
 具体可见：[路由配置](route.md)
 
 ## 控制
+### 控制客户端连接
+* camellia-redis-proxy支持配置客户端的连接数上限（支持全局的连接数，也支持bid/bgroup级别的）
+* camellia-redis-proxy支持配置关闭空闲的客户端连接数（该功能可能导致请求数较少的客户端请求异常，慎重配置） 
+
+具体可见：[客户端连接控制](connectlimit.md)
+
+### 拦截器
 camellia-redis-proxy提供了自定义命令拦截器来达到控制客户端访问的目的，此外proxy提供了几个默认的命令拦截器实现，可以按需使用：  
 * TroubleTrickKeysCommandInterceptor 用于临时屏蔽某些key的访问    
-* MultiWriteCommandInterceptor 用于自定义配置双写策略(key级别)   
+* MultiWriteCommandInterceptor 用于自定义配置双写策略(key级别)
+* RateLimitCommandInterceptor 用于控制客户端请求速率（支持全局速率控制，也支持bid/bgroup级别的速率控制）
+* MqMultiWriteCommandInterceptor 用于基于mq（如kafka等）的异步双写
 
-具体可见：[控制](control.md)
+具体可见：[拦截器](interceptor.md)
 
 ## key/value的自定义转换
 camellia-redis-proxy提供了key/value的自定义转换功能，从而你可以自定义的实现数据的解压缩、加解密等功能  
@@ -228,6 +238,14 @@ camellia-redis-proxy提供了丰富的监控功能，包括：
 camellia-redis-proxy默认通过在application.yml里配置全类名的方式来自定义一些功能（如监控回调、自定义动态路由等），1.0.38版本开始，支持使用spring来托管相关类的初始化  
 
 具体可见：[spring-autowire](spring-autowire.md)
+
+## 其他配置
+* netty配置，具体见：[netty-conf](netty-conf.md)
+* 使用nacos托管proxy配置，具体见：[nacos-conf](nacos-conf.md)
+
+## 其他
+* 关于双（多）写的若干问题，具体见：[multi-write](multi-write.md)
+* 关于scan和lua的相关说明，以及使用redis-shake进行数据迁移的说明，具体见：[misc](misc.md)
 
 ## 应用场景
 * 业务开始使用单点redis或者redis-sentinel，现在需要切换到redis-cluster，但是客户端需要改造（比如jedis访问redis-sentinel和redis-cluster是不一样的），此时你可以使用proxy，从而做到不改造（使用四层代理LB）或者很少的改造（使用注册中心）

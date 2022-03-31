@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -41,5 +44,42 @@ public class CamelliaIdLoader implements IDLoader {
             }
             return idRange;
         }
+    }
+
+    @Override
+    @Transactional(rollbackForClassName = { "Exception" })
+    public boolean update(String tag, long id) {
+        long now = System.currentTimeMillis();
+        Long oldId = mapper.selectForUpdate(tag);
+        boolean result;
+        if (oldId == null) {
+            result = mapper.insert(tag, id, now, now) > 0;
+        } else {
+            if (oldId > id) {
+                logger.warn("update tag = {} fail for old.id = {} > new.id = {}", tag, oldId, id);
+                return false;
+            }
+            result = mapper.update(tag, id, now) > 0;
+        }
+        logger.info("update tag = {}, old.id = {}, new.id = {}, result = {}", tag, oldId, id, result);
+        return result;
+    }
+
+    @Override
+    public Map<String, Long> selectTagIdMaps() {
+        List<TagIdInfo> tagIdInfos = mapper.selectTagIdMaps();
+        Map<String, Long> map = new HashMap<>();
+        for (TagIdInfo tagIdInfo : tagIdInfos) {
+            map.put(tagIdInfo.getTag(), tagIdInfo.getId());
+        }
+        if (logger.isInfoEnabled()) {
+            logger.info("select tag-id maps, size = {}", tagIdInfos.size());
+        }
+        return map;
+    }
+
+    @Override
+    public Long selectId(String tag) {
+        return mapper.selectId(tag);
     }
 }

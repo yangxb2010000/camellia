@@ -13,7 +13,7 @@ import com.netease.nim.camellia.core.util.CheckUtil;
  */
 public class StandardProxyHub<T> implements IProxyHub<T> {
 
-    private IProxyHub<T> proxyHub;
+    private final IProxyHub<T> proxyHub;
 
     public StandardProxyHub(Class<T> clazz, ResourceTable resourceTable) {
         this(clazz, resourceTable, null);
@@ -31,7 +31,7 @@ public class StandardProxyHub<T> implements IProxyHub<T> {
         IProxyHub<T> proxyHub;
         switch (type) {
             case SHADING:
-                proxyHub = new StandardShadingProxyHub<>(clazz, resourceTable.getShadingTable(), defaultResource, env);
+                proxyHub = new StandardShardingProxyHub<>(clazz, resourceTable.getShadingTable(), defaultResource, env);
                 break;
             case SIMPLE:
                 proxyHub = new StandardSimpleProxyHub<>(clazz, resourceTable.getSimpleTable(), defaultResource, env);

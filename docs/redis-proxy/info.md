@@ -13,7 +13,7 @@ proxy实现了info命令，支持返回如下信息：Server/Clients/Route/Upstr
 ```
 127.0.0.1:6380> info
 # Server
-camellia_redis_proxy_version:v1.0.37     ##proxy版本
+camellia_redis_proxy_version:v1.0.53     ##proxy版本
 redis_version:6.2.5  ##spring actuator默认会使用info命令返回的redis_version字段来做健康检查，这里直接返回一个固定的版本号
 available_processors:4      ##cpu核数
 netty_boss_thread:1     ##netty的bossGroup的线程数，默认=1
@@ -34,6 +34,8 @@ java_version:1.8.0_202  ##java版本
 
 # Clients
 connect_clients:14  ##客户端连接数
+connect_clients_1_default:10  ##bid=1，bgroup=default的客户端连接数
+connect_clients_2_default:4  ##bid=2，bgroup=default的客户端连接数
 
 # Route   
 route_nums:6  ##路由配置数量
@@ -75,13 +77,13 @@ non_heap_memory_max_human:-1B
 non_heap_memory_committed:33882112
 non_heap_memory_committed_human:32.31M
 
-# GC  ##GC相关信息
-young_gc_name:G1 Young Generation  ##young gc的回收器类型
-young_gc_collection_count:6  ##young gc累计次数
-young_gc_collection_time:97  ##young gc累计时间
-old_gc_name:G1 Old Generation  ##old gc的回收器类型
-old_gc_collection_count:0  ##old gc累计次数
-old_gc_collection_time:0  ##old gc累计时长
+# GC
+gc0_name:G1 Young Generation ##gc的回收器类型
+gc0_collection_count:3 ##gc累计次数
+gc0_collection_time:3 ##gc累计时间
+gc1_name:G1 Old Generation
+gc1_collection_count:0
+gc1_collection_time:0
 
 # Stats
 commands_count:4158008   ##proxy启动至今的请求数
@@ -130,7 +132,7 @@ non_heap_memory_committed_human:32.31M
 ```
 127.0.0.1:6381> info upstream-info
 # Upstream-Info
-route_conf:{"type":"shading","operation":{"operationMap":{"0-2-4":{"read":"redis-sentinel-slaves://@127.0.0.1:26379/master1?withMaster=true","type":"rw_separate","write":"redis-sentinel://@127.0.0.1:26379/master1"},"1-3-5":"redis-cluster://@10.189.28.62:7008,10.189.28.60:7001,10.189.28.62:7011"},"bucketSize":6}}
+route_conf:{"type":"sharding","operation":{"operationMap":{"0-2-4":{"read":"redis-sentinel-slaves://@127.0.0.1:26379/master1?withMaster=true","type":"rw_separate","write":"redis-sentinel://@127.0.0.1:26379/master1"},"1-3-5":"redis-cluster://@10.189.28.62:7008,10.189.28.60:7001,10.189.28.62:7011"},"bucketSize":6}}
 upstream_cluster_count:3  ##本路由后端redis集群数量
 upstream0_url:redis-cluster://@10.189.28.62:7008,10.189.28.60:7001,10.189.28.62:7011  ##本路由包含的redis集群地址1
 upstream1_url:redis-sentinel://@127.0.0.1:26379/master1    ##本路由包含的redis集群地址2
@@ -146,7 +148,7 @@ cluster_slots_pfail:0  ##pfail状态的slot数量
 cluster_slots_fail:0  ##fail状态的slot数量
 cluster_known_nodes:6  ##集群的节点数
 cluster_size:3  ##集群大小，即主节点数量
-cluster_safety:yes    ## 超过一半的主节点在同一个ip下，则判定为不安全
+cluster_safety:yes    ##如果master没有slave，或者有一个ip的master节点占了所有master节点的一半以上，则认为集群是不安全的，参考：https://redis.io/topics/cluster-spec
 cluster_maxmemory:9663676416  ##集群总内存大小
 cluster_maxmemory_human:9.00G  ##集群总内存大小（可读性）
 cluster_used_memory:2304452928  ##集群已用内存大小
@@ -268,3 +270,33 @@ role:master
 connected_slaves:0
 db0:keys=39,expires=0,avg_ttl=0
 ```
+
+除了使用redis协议来获取info信息外，你还可以基于console的http-api来执行并获取info信息：  
+你可以访问 http://127.0.0.1:16379/info 来获取信息（支持json格式化），如下：  
+
+* txt形式：     
+
+<img src="redis-proxy-info-api-txt.png" width="50%" height="50%">
+
+* json格式化：    
+
+<img src="redis-proxy-info-api-json.png" width="50%" height="50%">
+
+你也可以使用section参数，如下：       
+* txt形式：    
+
+<img src="redis-proxy-info-api-section-txt.png" width="50%" height="50%">
+
+* json格式化：    
+
+<img src="redis-proxy-info-api-section-json.png" width="50%" height="50%">  
+
+也支持upstream-info，如下：        
+
+* txt形式：  
+
+<img src="redis-proxy-upstream-info-api-txt.png" width="50%" height="50%">
+
+* json格式化：  
+
+<img src="redis-proxy-upstream-info-api-json.png" width="50%" height="50%">

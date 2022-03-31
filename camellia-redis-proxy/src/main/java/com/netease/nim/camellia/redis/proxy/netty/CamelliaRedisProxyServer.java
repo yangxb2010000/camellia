@@ -36,6 +36,7 @@ public class CamelliaRedisProxyServer {
         this.bossGroup = bossGroup;
         this.workGroup = workGroup;
         ConfigInitUtil.initProxyDynamicConfHook(serverProperties);
+        ConfigInitUtil.initConnectLimiter(serverProperties);
         if (bossGroup instanceof NioEventLoopGroup && workGroup instanceof NioEventLoopGroup) {
             ProxyInfoUtils.updateThread(((NioEventLoopGroup) bossGroup).executorCount(), ((NioEventLoopGroup) workGroup).executorCount());
         }
@@ -54,6 +55,7 @@ public class CamelliaRedisProxyServer {
         GlobalRedisProxyEnv.workGroup = workGroup;
         GlobalRedisProxyEnv.bossGroup = bossGroup;
         ConfigInitUtil.initProxyDynamicConfHook(serverProperties);
+        ConfigInitUtil.initConnectLimiter(serverProperties);
         ProxyInfoUtils.updateThread(bossThread, workThread);
     }
 
@@ -64,13 +66,19 @@ public class CamelliaRedisProxyServer {
                 .option(ChannelOption.SO_BACKLOG, serverProperties.getSoBacklog())
                 .childOption(ChannelOption.SO_SNDBUF, serverProperties.getSoSndbuf())
                 .childOption(ChannelOption.SO_RCVBUF, serverProperties.getSoRcvbuf())
-                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.TCP_NODELAY, serverProperties.isTcpNoDelay())
+                .childOption(ChannelOption.SO_KEEPALIVE, serverProperties.isSoKeepalive())
                 .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK,
                         new WriteBufferWaterMark(serverProperties.getWriteBufferWaterMarkLow(), serverProperties.getWriteBufferWaterMarkHigh()))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) {
                         ChannelPipeline p = ch.pipeline();
+                        if (serverProperties.getReaderIdleTimeSeconds() >= 0 && serverProperties.getWriterIdleTimeSeconds() >= 0
+                                && serverProperties.getAllIdleTimeSeconds() >= 0) {
+                            p.addLast(new IdleCloseHandler(serverProperties.getReaderIdleTimeSeconds(),
+                                    serverProperties.getWriterIdleTimeSeconds(), serverProperties.getAllIdleTimeSeconds()));
+                        }
                         p.addLast(new CommandDecoder(serverProperties.getCommandDecodeMaxBatchSize(), serverProperties.getCommandDecodeBufferInitializerSize()));
                         p.addLast(new ReplyEncoder());
                         p.addLast(initHandler);
@@ -83,6 +91,10 @@ public class CamelliaRedisProxyServer {
             port = SocketUtils.findRandomPort();
         }
         serverBootstrap.bind(port).sync();
+        logger.info("CamelliaRedisProxyServer, so_backlog = {}, so_sendbuf = {}, so_rcvbuf = {}, so_keepalive = {}",
+                serverProperties.getSoBacklog(), serverProperties.getSoSndbuf(), serverProperties.getSoRcvbuf(), serverProperties.isSoKeepalive());
+        logger.info("CamelliaRedisProxyServer, tcp_no_delay = {}, write_buffer_water_mark_low = {}, write_buffer_water_mark_high = {}",
+                serverProperties.isTcpNoDelay(), serverProperties.getWriteBufferWaterMarkLow(), serverProperties.getWriteBufferWaterMarkHigh());
         logger.info("CamelliaRedisProxyServer start at port: {}", port);
         ProxyInfoUtils.updatePort(port);
         this.port = port;

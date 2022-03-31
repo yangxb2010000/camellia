@@ -45,6 +45,7 @@ public class CamelliaRedisProxyUtil {
         serverProperties.setMonitorCallback(support.getMonitorCallback());
         serverProperties.setMonitorCallbackClassName(properties.getMonitorCallbackClassName());
         serverProperties.setCommandSpendTimeMonitorEnable(properties.isCommandSpendTimeMonitorEnable());
+        serverProperties.setUpstreamRedisSpendTimeMonitorEnable(properties.isUpstreamRedisSpendTimeMonitorEnable());
         serverProperties.setSlowCommandThresholdMillisTime(properties.getSlowCommandThresholdMillisTime());
         serverProperties.setCommandInterceptorClassName(properties.getCommandInterceptorClassName());
         serverProperties.setCommandInterceptor(support.getCommandInterceptor());
@@ -61,11 +62,19 @@ public class CamelliaRedisProxyUtil {
         }
         serverProperties.setCommandDecodeMaxBatchSize(netty.getCommandDecodeMaxBatchSize());
         serverProperties.setCommandDecodeBufferInitializerSize(netty.getCommandDecodeBufferInitializerSize());
+        serverProperties.setTcpNoDelay(netty.isTcpNoDelay());
         serverProperties.setSoBacklog(netty.getSoBacklog());
         serverProperties.setSoRcvbuf(netty.getSoRcvbuf());
         serverProperties.setSoSndbuf(netty.getSoSndbuf());
+        serverProperties.setSoKeepalive(netty.isSoKeepalive());
+        serverProperties.setReaderIdleTimeSeconds(netty.getReaderIdleTimeSeconds());
+        serverProperties.setWriterIdleTimeSeconds(netty.getWriterIdleTimeSeconds());
+        serverProperties.setAllIdleTimeSeconds(netty.getAllIdleTimeSeconds());
         serverProperties.setWriteBufferWaterMarkLow(netty.getWriteBufferWaterMarkLow());
         serverProperties.setWriteBufferWaterMarkHigh(netty.getWriteBufferWaterMarkHigh());
+
+        serverProperties.setConnectLimiterClassName(properties.getConnectLimiterClassName());
+        serverProperties.setConnectLimiter(support.getConnectLimiter());
 
         CamelliaRedisProxyProperties.HotKeyMonitorConfig hotKeyMonitorConfig = properties.getHotKeyMonitorConfig();
         CamelliaServerProperties.HotKeyMonitorConfig config = new CamelliaServerProperties.HotKeyMonitorConfig();
@@ -259,8 +268,8 @@ public class CamelliaRedisProxyUtil {
     public static CamelliaTranspondProperties.RedisConfProperties parse(TranspondProperties.RedisConfProperties properties, CamelliaRedisProxyConfigurerSupport support) {
         if (properties == null) return null;
         CamelliaTranspondProperties.RedisConfProperties redisConfProperties = new CamelliaTranspondProperties.RedisConfProperties();
-        redisConfProperties.setShadingFunc(properties.getShadingFunc());
-        redisConfProperties.setShadingFuncInstance(support.getShadingFunc());
+        redisConfProperties.setShardingFunc(properties.getShardingFunc());
+        redisConfProperties.setShardingFuncInstance(support.getShardingFunc());
         redisConfProperties.setConnectTimeoutMillis(properties.getConnectTimeoutMillis());
         redisConfProperties.setFailBanMillis(properties.getFailBanMillis());
         redisConfProperties.setFailCountThreshold(properties.getFailCountThreshold());
@@ -274,5 +283,17 @@ public class CamelliaRedisProxyUtil {
         redisConfProperties.setCheckIdleConnectionThresholdSeconds(properties.getCheckIdleConnectionThresholdSeconds());
         redisConfProperties.setCloseIdleConnectionDelaySeconds(properties.getCloseIdleConnectionDelaySeconds());
         return redisConfProperties;
+    }
+
+    public static CamelliaTranspondProperties.NettyProperties parse(TranspondProperties.NettyProperties properties) {
+        if (properties == null) return null;
+        CamelliaTranspondProperties.NettyProperties nettyProperties = new CamelliaTranspondProperties.NettyProperties();
+        nettyProperties.setSoKeepalive(properties.isSoKeepalive());
+        nettyProperties.setTcpNoDelay(properties.isTcpNoDelay());
+        nettyProperties.setSoRcvbuf(properties.getSoRcvbuf());
+        nettyProperties.setSoSndbuf(properties.getSoSndbuf());
+        nettyProperties.setWriteBufferWaterMarkLow(properties.getWriteBufferWaterMarkLow());
+        nettyProperties.setWriteBufferWaterMarkHigh(properties.getWriteBufferWaterMarkHigh());
+        return nettyProperties;
     }
 }

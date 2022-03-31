@@ -2,6 +2,7 @@ package com.netease.nim.camellia.redis.proxy.conf;
 
 import com.netease.nim.camellia.core.util.SysUtils;
 import com.netease.nim.camellia.redis.proxy.command.async.bigkey.LoggingBigKeyMonitorCallback;
+import com.netease.nim.camellia.redis.proxy.command.async.connectlimit.DynamicConfConnectLimiter;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkey.LoggingHotKeyMonitorCallback;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkeycache.DummyHotKeyCacheKeyChecker;
 import com.netease.nim.camellia.redis.proxy.command.async.hotkeycache.LoggingHotKeyCacheStatsCallback;
@@ -23,19 +24,26 @@ public class Constants {
         public static final int consolePortRandSig = -16379;
         public static final boolean monitorEnable = false;
         public static final boolean commandSpendTimeMonitorEnable = false;
+        public static final boolean upstreamRedisSpendTimeMonitorEnable = false;//检测后段redis
         public static final String monitorCallbackClassName = LoggingMonitorCallback.class.getName();
         public static final long slowCommandThresholdMillisTime = 2000L;
         public static final String slowCommandMonitorCallbackClassName = LoggingSlowCommandMonitorCallback.class.getName();
-        public static String clientAuthByConfigProvider = ClientAuthByConfigProvider.class.getName();
+        public static final String clientAuthByConfigProvider = ClientAuthByConfigProvider.class.getName();
+        public static final String connectLimiterClassName = DynamicConfConnectLimiter.class.getName();
         public static final int monitorIntervalSeconds = 60;
 
         public static final int workThread = SysUtils.getCpuNum();
         public static final int commandDecodeMaxBatchSize = 256;
         public static final int commandDecodeBufferInitializerSize = 32;
 
+        public static final boolean tcpNoDelay = true;
         public static final int soBacklog = 1024;
         public static final int soSndbuf = 10 * 1024 * 1024;
         public static final int soRcvbuf = 10 * 1024 * 1024;
+        public static final boolean soKeepalive = false;
+        public static final int readerIdleTimeSeconds = -1;
+        public static final int writerIdleTimeSeconds = -1;
+        public static final int allIdleTimeSeconds = -1;
         public static final int writeBufferWaterMarkLow = 128 * 1024;
         public static final int writeBufferWaterMarkHigh = 512 * 1024;
 
@@ -84,6 +92,13 @@ public class Constants {
         public static final boolean closeIdleConnection = true;//是否关闭空闲连接（到后端redis的）
         public static final long checkIdleConnectionThresholdSeconds = 60 * 10;//判断一个连接空闲的阈值，单位秒
         public static final int closeIdleConnectionDelaySeconds = 60;//判断一个连接空闲后，再过多少秒去执行关闭操作
+
+        public static final int soSndbuf = 10 * 1024 * 1024;
+        public static final int soRcvbuf = 10 * 1024 * 1024;
+        public static final boolean tcpNoDelay = true;
+        public static final boolean soKeepalive = true;
+        public static final int writeBufferWaterMarkLow = 128 * 1024;
+        public static final int writeBufferWaterMarkHigh = 512 * 1024;
     }
 
     public static class Remote {

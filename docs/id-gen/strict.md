@@ -16,6 +16,9 @@
 * 发号器节点会统计每个批次分配完毕消耗的时间来动态调整批次大小
 * 核心源码参见CamelliaStrictIdGen
 
+### id构成（二进制，设置了regionId且设置了regionId左移的情况下）
+<img src="id-gen-strict-region.png" width="70%" height="70%">
+
 ### 用法(直接使用)
 引入maven依赖
 ```
@@ -121,16 +124,18 @@ spring:
 
 
 camellia-id-gen-strict:
-  regionBits: 0 #单元id所占的比特位数，0表示不区分单元
-  regionId: 0 #regionId，如果regionBits为0，则regionId必须为0
+  region-bits: 0 #单元id所占的比特位数，0表示不区分单元
+  region-id: 0 #regionId，如果regionBits为0，则regionId必须为0
+  region-id-shifting-bits: 0 #regionId左移多少位
   cache-key-prefix: strict #redis key的前缀
   lock-expire-millis: 3000 #redis缓存里id耗尽时需要穿透到db重新获取，为了控制并发需要一个分布式锁，这是分布式锁的超时时间
   cache-expire-seconds: 86400 #id缓存在redis里，redis key的过期时间，默认1天
   cache-hold-seconds: 10 #缓存里的id如果在短时间内被消耗完，则下次获取id时需要多获取一些，本配置是触发step调整的阈值
-  max-retry: 10 #缓存中id耗尽时穿透到db，其他线程等待重试的最大次数
+  max-retry: 100 #缓存中id耗尽时穿透到db，其他线程等待重试的最大次数
   retry-interval-millis: 5 #缓存中id耗尽时穿透到db，其他线程等待重试的间隔
   default-step: 10 #默认每次从db获取的id个数，也是最小的个数
   max-step: 100 #根据id的消耗速率动态调整每次从db获取id的个数，这个是上限值
+
 
 
 camellia-redis:
@@ -156,9 +161,9 @@ camellia-redis:
 ```sql
 CREATE TABLE `camellia_id_info` (
   `tag` varchar(512) NOT NULL COMMENT 'tag',
-  `id` bigint(9) DEFAULT NULL COMMENT 'id',
-  `createTime` varchar(2000) DEFAULT NULL COMMENT '创建时间',
-  `updateTime` varchar(64) DEFAULT NULL COMMENT '更新时间',
+  `id` bigint(20) DEFAULT NULL COMMENT 'id',
+  `createTime` bigint(20) DEFAULT NULL COMMENT '创建时间',
+  `updateTime` bigint(20) DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`tag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='id生成表';
 ```
@@ -180,6 +185,21 @@ http://127.0.0.1:8082/camellia/id/gen/strict/peekId?tag=a
 {
     "code": 200,
     "data": 5023,
+    "msg": "success"
+}
+```
+更新id起始值（POST请求）：  
+```
+curl -d "tag=a&id=100" http://127.0.0.1:8082/camellia/id/gen/strict/update
+```
+
+解析regionId：  
+http://127.0.0.1:8082/camellia/id/gen/strict/decodeRegionId?id=11111  
+返回示例：
+```json
+{
+    "code": 200,
+    "data": 10,
     "msg": "success"
 }
 ```

@@ -1,6 +1,8 @@
 package com.netease.nim.camellia.redis.proxy.command.async;
 
 
+import com.netease.nim.camellia.core.util.CamelliaMapUtils;
+import com.netease.nim.camellia.core.util.LockMap;
 import com.netease.nim.camellia.core.util.SysUtils;
 import com.netease.nim.camellia.redis.exception.CamelliaRedisException;
 import com.netease.nim.camellia.redis.proxy.conf.Constants;
@@ -47,6 +49,13 @@ public class RedisClientHub {
     public static int connectTimeoutMillis = Constants.Transpond.connectTimeoutMillis;
     public static int failCountThreshold = Constants.Transpond.failCountThreshold;
     public static long failBanMillis = Constants.Transpond.failBanMillis;
+
+    public static boolean soKeepalive = Constants.Transpond.soKeepalive;
+    public static int soSndbuf = Constants.Transpond.soSndbuf;
+    public static int soRcvbuf = Constants.Transpond.soRcvbuf;
+    public static boolean tcpNoDelay = Constants.Transpond.tcpNoDelay;
+    public static int writeBufferWaterMarkLow = Constants.Transpond.writeBufferWaterMarkLow;
+    public static int writeBufferWaterMarkHigh = Constants.Transpond.writeBufferWaterMarkHigh;
 
     public static boolean closeIdleConnection = Constants.Transpond.closeIdleConnection;
     public static long checkIdleConnectionThresholdSeconds = Constants.Transpond.checkIdleConnectionThresholdSeconds;
@@ -165,6 +174,7 @@ public class RedisClientHub {
             config.setPort(addr.getPort());
             config.setUserName(addr.getUserName());
             config.setPassword(addr.getPassword());
+            config.setReadonly(addr.isReadonly());
             config.setEventLoopGroup(loopGroup);
             config.setHeartbeatTimeoutMillis(-1);
             config.setHeartbeatIntervalSeconds(-1);
@@ -298,6 +308,7 @@ public class RedisClientHub {
                     config.setPort(addr.getPort());
                     config.setUserName(addr.getUserName());
                     config.setPassword(addr.getPassword());
+                    config.setReadonly(addr.isReadonly());
                     config.setEventLoopGroup(eventLoop);
                     config.setHeartbeatTimeoutMillis(heartbeatTimeoutMillis);
                     config.setHeartbeatIntervalSeconds(heartbeatIntervalSeconds);

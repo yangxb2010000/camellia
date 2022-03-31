@@ -144,11 +144,16 @@ reload动态配置ProxyDynamicConf
 
 ### 客户端接入（java之jedis）
 如果端侧是Java，并且使用的是Jedis，那么camellia提供了RedisProxyJedisPool，方便你进行改造。  
-首先，在客户端侧的工程里添加如下maven依赖：
+首先，在客户端侧的工程里添加如下maven依赖(如果是jedis3则引入camellia-redis-proxy-discovery-jedis3)：
 ```
 <dependency>
     <groupId>com.netease.nim</groupId>
-    <artifactId>camellia-redis-zk-discovery</artifactId>
+    <artifactId>camellia-redis-proxy-discovery-zk</artifactId>
+    <version>a.b.c</version>
+</dependency>
+<dependency>
+    <groupId>com.netease.nim</groupId>
+    <artifactId>camellia-redis-proxy-discovery-jedis2</artifactId>
     <version>a.b.c</version>
 </dependency>
 ``` 
@@ -160,11 +165,6 @@ RedisProxyJedisPool使用IProxySelector来定义proxy的负载均衡策略，默
 此外，如果redis-proxy使用了camellia-dashboard，且使用了动态的多组配置，那么RedisProxyJedisPool需要声明一下自己的bid和bgroup  
 下面是一个例子：  
 ```java
-import com.netease.nim.camellia.redis.proxy.RedisProxyJedisPool;
-import com.netease.nim.camellia.redis.proxy.RegionResolver;
-import com.netease.nim.camellia.redis.zk.discovery.ZkProxyDiscovery;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPoolConfig;
 
 public class TestRedisProxyJedisPool {
 

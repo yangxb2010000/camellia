@@ -1,6 +1,8 @@
 package com.netease.nim.camellia.redis.proxy.console;
 
 import com.alibaba.fastjson.JSONObject;
+import com.netease.nim.camellia.redis.proxy.command.async.info.ProxyInfoUtils;
+import com.netease.nim.camellia.redis.proxy.command.async.info.UpstreamInfoUtils;
 import com.netease.nim.camellia.redis.proxy.conf.ProxyDynamicConf;
 import com.netease.nim.camellia.redis.proxy.monitor.*;
 import com.netease.nim.camellia.redis.proxy.netty.ServerStatus;
@@ -10,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -109,11 +112,50 @@ public class ConsoleServiceAdaptor implements ConsoleService {
     }
 
     @Override
+    public ConsoleResult info(Map<String, List<String>> params) {
+        Map<String, String> map = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+            if (!entry.getValue().isEmpty()) {
+                map.put(entry.getKey(), entry.getValue().get(0));
+            }
+        }
+        String string = ProxyInfoUtils.generateProxyInfo(map);
+        return ConsoleResult.success(string);
+    }
+
+    @Override
     public ConsoleResult custom(Map<String, List<String>> params) {
         if (logger.isDebugEnabled()) {
             logger.debug("custom, params = {}", params);
         }
         return ConsoleResult.success();
+    }
+
+    @Override
+    public ConsoleResult detect(Map<String, List<String>> params) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("detect, params = {}", params);
+        }
+        String url = null;
+        for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("url")) {
+                url = entry.getValue().get(0);
+            }
+        }
+        if (url != null) {
+            try {
+                JSONObject jsonObject = UpstreamInfoUtils.monitorJson(url);
+                if (jsonObject != null) {
+                    return ConsoleResult.success(jsonObject.toJSONString());
+                } else {
+                    return ConsoleResult.error("param wrong");
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ConsoleResult.error("internal error");
+            }
+        }
+        return ConsoleResult.error("param wrong");
     }
 
     public void setServerPort(int serverPort) {

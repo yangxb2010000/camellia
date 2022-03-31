@@ -24,6 +24,7 @@ camellia-redis-proxy:
   password: pass123   #proxy的密码
   monitor-enable: true  #是否开启监控
   command-spend-time-monitor-enable: true #是否开启请求耗时的监控，只有monitor-enable=true才有效
+  upstream-redis-spend-time-monitor-enable: true #是否开启后端redis响应耗时的监控，只有monitor-enable=true才有效
   monitor-interval-seconds: 60 #监控回调的间隔
   monitor-callback-class-name: com.netease.nim.camellia.redis.proxy.monitor.LoggingMonitorCallback #监控回调类
   transpond:
@@ -136,13 +137,14 @@ spring:
 camellia-redis-proxy:
   #port: 6380 #优先级高于server.port，如果缺失，则使用server.port，如果设置为-6379则会随机一个可用端口
   #application-name: camellia-redis-proxy-server  #优先级高于spring.application.name，如果缺失，则使用spring.application.name
-  console-port: 16379 #console端口，默认是16379，如果设置为-16379则会随机一个可用端口
+  console-port: 16379 #console端口，默认是16379，如果设置为-16379则会随机一个可用端口，如果设置为0，则不启动console
   password: pass123   #proxy的密码，如果设置了自定义的client-auth-provider-class-name，则密码参数无效
   monitor-enable: true  #是否开启监控
   monitor-interval-seconds: 60 #监控回调的间隔
   monitor-data-mask-password: false #监控相关数据（包括日志）是否把密码隐藏，默认false（例：用***代替abc）
   monitor-callback-class-name: com.netease.nim.camellia.redis.proxy.monitor.LoggingMonitorCallback #监控回调类
   command-spend-time-monitor-enable: true #是否开启请求耗时的监控，只有monitor-enable=true才有效
+  upstream-redis-spend-time-monitor-enable: true #是否开启后端redis响应耗时的监控，只有monitor-enable=true才有效
   slow-command-threshold-millis-time: 1000 #慢查询的阈值，单位毫秒，只有command-spend-time-monitor-enable=true才有效
   slow-command-callback-class-name: com.netease.nim.camellia.redis.proxy.command.async.spendtime.LoggingSlowCommandMonitorCallback #慢查询的回调类
   command-interceptor-class-name: com.netease.nim.camellia.redis.proxy.samples.CustomCommandInterceptor #方法拦截器
@@ -183,7 +185,7 @@ camellia-redis-proxy:
       multi-write-mode: first_resource_only #双写的模式，默认第一个地址返回就返回
       #close-idle-connection: true #是否关闭空闲连接，默认true
       #check-idle-connection-threshold-seconds: 600  #多久算空闲连接，默认600s
-      #shading-func: com.netease.nim.camellia.redis.proxy.samples.CustomShadingFunc #分片函数
+      #sharding-func: com.netease.nim.camellia.redis.proxy.samples.CustomShardingFunc #分片函数
 
 camellia-redis-zk-registry: #需要引入相关的依赖才有效
   enable: false #是否注册到zk

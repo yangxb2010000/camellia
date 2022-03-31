@@ -14,6 +14,9 @@
 * 每个ms内使用递增sequence确保唯一    
 * 核心源码参见CamelliaSnowflakeIdGen  
 
+### id构成（二进制）
+<img src="id-gen-snowflake.png" width="90%" height="90%">
+
 ### 用法（直接使用）
 引入maven依赖
 ```
@@ -154,6 +157,39 @@ http://127.0.0.1:8081/camellia/id/gen/snowflake/decodeTs?id=6393964107649080
   "msg": "success"
 }
 ```  
+
+解析regionId：  
+http://127.0.0.1:8081/camellia/id/gen/snowflake/decodeRegionId?id=11111  
+返回示例：
+```json
+{
+    "code": 200,
+    "data": 10,
+    "msg": "success"
+}
+```
+
+解析workerId：  
+http://127.0.0.1:8081/camellia/id/gen/snowflake/decodeWorkerId?id=11111  
+返回示例：
+```json
+{
+    "code": 200,
+    "data": 1,
+    "msg": "success"
+}
+```
+
+解析sequence：  
+http://127.0.0.1:8081/camellia/id/gen/snowflake/decodeSequence?id=11111  
+返回示例：
+```json
+{
+    "code": 200,
+    "data": 23,
+    "msg": "success"
+}
+```
 
 当使用spring-boot-starter部署了独立的发号器服务后，为了方便使用http方法访问相关接口，我们提供了一个简易的封装    
 先引入maven依赖：  

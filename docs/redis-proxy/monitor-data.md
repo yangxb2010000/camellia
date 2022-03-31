@@ -105,7 +105,8 @@
       "count": 2  //数量
     }
   ],
-  "slowCommandStats": [ //慢查询监控，
+  "slowCommandStats": [ //慢查询监控
+    //特别的，你可以通过在camellia-redis-proxy.propertis里配置slow.command.monitor.json.max.count=100来限制该监控数据项的最大个数，默认100个
     {
       "bgroup": "default",  //bgroup
       "bid": "1",   //bid，如果没有使用camellia-dashboard，而是使用了local配置，则bid=default/bgroup=default
@@ -136,6 +137,7 @@
     }
   ],
   "bigKeyStats": [  //大key监控
+    //特别的，你可以通过在camellia-redis-proxy.propertis里配置big.key.monitor.json.max.count=10000来限制该监控数据项的最大个数，默认限制100，一般来说，更好的方式是通过调整更合适的大key检测阈值来减少数据项
     {
       "commandType": "ZSET",  //key的类型，包括STRING/ZSET/SET/LIST/HASH等
       "size": 1903,  //大小
@@ -260,6 +262,20 @@
     {
       "addr": "abc@10.201.48.171:6379",
       "connect": 4
+    }
+  ],
+  "upstreamRedisSpendStats": [//后端redis的响应时间
+    {
+      "maxSpendMs": 8.689271,
+      "count": 184,
+      "addr": "abc@10.201.48.171:6379",
+      "avgSpendMs": 3.060518804347826
+    },
+    {
+      "maxSpendMs": 0.176157,
+      "count": 19,
+      "addr": "@10.177.0.69:8803",
+      "avgSpendMs": 0.12276473684210526
     }
   ]
 }

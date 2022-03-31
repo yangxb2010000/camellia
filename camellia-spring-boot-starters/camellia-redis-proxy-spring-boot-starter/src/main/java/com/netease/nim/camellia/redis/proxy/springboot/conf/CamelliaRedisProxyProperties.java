@@ -52,6 +52,11 @@ public class CamelliaRedisProxyProperties {
     private boolean commandSpendTimeMonitorEnable = Constants.Server.commandSpendTimeMonitorEnable;
 
     /**
+     * 是否开启监控后端redis响应时间的监控，需要同时开启monitorEnable和upstreamRedisSpendTimeMonitorEnable才能生效，see @RedisMonitor
+     */
+    private boolean upstreamRedisSpendTimeMonitorEnable = Constants.Server.upstreamRedisSpendTimeMonitorEnable;
+
+    /**
      * 开启监控命令执行时间的监控的前提下，慢查询的阈值，单位ms
      */
     private long slowCommandThresholdMillisTime = Constants.Server.slowCommandThresholdMillisTime;
@@ -121,6 +126,11 @@ public class CamelliaRedisProxyProperties {
      * 监控数据是否暴露密码
      */
     private boolean monitorDataMaskPassword = Constants.Server.monitorDataMaskPassword;
+
+    /**
+     * 用于配置客户端最大连接数
+     */
+    private String connectLimiterClassName = Constants.Server.connectLimiterClassName;
 
     /**
      * netty相关参数
@@ -194,6 +204,14 @@ public class CamelliaRedisProxyProperties {
 
     public void setCommandSpendTimeMonitorEnable(boolean commandSpendTimeMonitorEnable) {
         this.commandSpendTimeMonitorEnable = commandSpendTimeMonitorEnable;
+    }
+
+    public boolean isUpstreamRedisSpendTimeMonitorEnable() {
+        return upstreamRedisSpendTimeMonitorEnable;
+    }
+
+    public void setUpstreamRedisSpendTimeMonitorEnable(boolean upstreamRedisSpendTimeMonitorEnable) {
+        this.upstreamRedisSpendTimeMonitorEnable = upstreamRedisSpendTimeMonitorEnable;
     }
 
     public long getSlowCommandThresholdMillisTime() {
@@ -322,6 +340,14 @@ public class CamelliaRedisProxyProperties {
 
     public void setMonitorDataMaskPassword(boolean monitorDataMaskPassword) {
         this.monitorDataMaskPassword = monitorDataMaskPassword;
+    }
+
+    public String getConnectLimiterClassName() {
+        return connectLimiterClassName;
+    }
+
+    public void setConnectLimiterClassName(String connectLimiterClassName) {
+        this.connectLimiterClassName = connectLimiterClassName;
     }
 
     public static class HotKeyMonitorConfig {

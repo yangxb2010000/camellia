@@ -1,6 +1,6 @@
 package com.netease.nim.camellia.redis.proxy.conf;
 
-import com.netease.nim.camellia.core.client.env.ShadingFunc;
+import com.netease.nim.camellia.core.client.env.ShardingFunc;
 import com.netease.nim.camellia.core.model.ResourceTable;
 import com.netease.nim.camellia.redis.proxy.command.async.route.ProxyRouteConfUpdater;
 
@@ -15,6 +15,7 @@ public class CamelliaTranspondProperties {
     private RemoteProperties remote;
     private CustomProperties custom;
     private RedisConfProperties redisConf = new RedisConfProperties();
+    private NettyProperties nettyProperties = new NettyProperties();
 
     public static enum Type {
         LOCAL,
@@ -62,6 +63,14 @@ public class CamelliaTranspondProperties {
 
     public void setRedisConf(RedisConfProperties redisConf) {
         this.redisConf = redisConf;
+    }
+
+    public NettyProperties getNettyProperties() {
+        return nettyProperties;
+    }
+
+    public void setNettyProperties(NettyProperties nettyProperties) {
+        this.nettyProperties = nettyProperties;
     }
 
     public static class LocalProperties {
@@ -218,10 +227,67 @@ public class CamelliaTranspondProperties {
         }
     }
 
+    public static class NettyProperties {
+        public int soSndbuf = Constants.Transpond.soSndbuf;
+        public int soRcvbuf = Constants.Transpond.soRcvbuf;
+        public boolean tcpNoDelay = Constants.Transpond.tcpNoDelay;
+        public boolean soKeepalive = Constants.Transpond.soKeepalive;
+        public int writeBufferWaterMarkLow = Constants.Transpond.writeBufferWaterMarkLow;
+        public int writeBufferWaterMarkHigh = Constants.Transpond.writeBufferWaterMarkHigh;
+
+        public int getSoSndbuf() {
+            return soSndbuf;
+        }
+
+        public void setSoSndbuf(int soSndbuf) {
+            this.soSndbuf = soSndbuf;
+        }
+
+        public int getSoRcvbuf() {
+            return soRcvbuf;
+        }
+
+        public void setSoRcvbuf(int soRcvbuf) {
+            this.soRcvbuf = soRcvbuf;
+        }
+
+        public boolean isTcpNoDelay() {
+            return tcpNoDelay;
+        }
+
+        public void setTcpNoDelay(boolean tcpNoDelay) {
+            this.tcpNoDelay = tcpNoDelay;
+        }
+
+        public boolean isSoKeepalive() {
+            return soKeepalive;
+        }
+
+        public void setSoKeepalive(boolean soKeepalive) {
+            this.soKeepalive = soKeepalive;
+        }
+
+        public int getWriteBufferWaterMarkLow() {
+            return writeBufferWaterMarkLow;
+        }
+
+        public void setWriteBufferWaterMarkLow(int writeBufferWaterMarkLow) {
+            this.writeBufferWaterMarkLow = writeBufferWaterMarkLow;
+        }
+
+        public int getWriteBufferWaterMarkHigh() {
+            return writeBufferWaterMarkHigh;
+        }
+
+        public void setWriteBufferWaterMarkHigh(int writeBufferWaterMarkHigh) {
+            this.writeBufferWaterMarkHigh = writeBufferWaterMarkHigh;
+        }
+    }
+
     public static class RedisConfProperties {
         //分片函数
-        private String shadingFunc;
-        private ShadingFunc shadingFuncInstance;
+        private String shardingFunc;
+        private ShardingFunc shardingFuncInstance;
         private int redisClusterMaxAttempts = Constants.Transpond.redisClusterMaxAttempts;
         private int heartbeatIntervalSeconds = Constants.Transpond.heartbeatIntervalSeconds;
         private long heartbeatTimeoutMillis = Constants.Transpond.heartbeatTimeoutMillis;
@@ -235,20 +301,20 @@ public class CamelliaTranspondProperties {
         public long checkIdleConnectionThresholdSeconds = Constants.Transpond.checkIdleConnectionThresholdSeconds;//判断一个连接空闲的阈值，单位秒
         public int closeIdleConnectionDelaySeconds = Constants.Transpond.closeIdleConnectionDelaySeconds;//判断一个连接空闲后，再过多少秒去执行关闭操作
 
-        public String getShadingFunc() {
-            return shadingFunc;
+        public String getShardingFunc() {
+            return shardingFunc;
         }
 
-        public void setShadingFunc(String shadingFunc) {
-            this.shadingFunc = shadingFunc;
+        public void setShardingFunc(String shardingFunc) {
+            this.shardingFunc = shardingFunc;
         }
 
-        public ShadingFunc getShadingFuncInstance() {
-            return shadingFuncInstance;
+        public ShardingFunc getShardingFuncInstance() {
+            return shardingFuncInstance;
         }
 
-        public void setShadingFuncInstance(ShadingFunc shadingFuncInstance) {
-            this.shadingFuncInstance = shadingFuncInstance;
+        public void setShardingFuncInstance(ShardingFunc shardingFuncInstance) {
+            this.shardingFuncInstance = shardingFuncInstance;
         }
 
         public int getRedisClusterMaxAttempts() {

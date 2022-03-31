@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  * 雪花算法生成id，趋势递增
  * 64位数字
  * 1位（不用）+ 41位（时间戳）+ r位（单元id）+ w位（机器id）+ s位（序列号）
- * 其中r+w+s<=22位
+ * 其中r+w+s小于等于22位
  * Created by caojiajun on 2021/9/18
  */
 public class CamelliaSnowflakeIdGen implements ICamelliaSnowflakeIdGen {
@@ -118,6 +118,30 @@ public class CamelliaSnowflakeIdGen implements ICamelliaSnowflakeIdGen {
     @Override
     public long decodeTs(long id) {
         return (id >> (regionBits + workerIdBits + sequenceBits)) + twepoch;
+    }
+
+    public long decodeRegionId(long id) {
+        if (regionBits == 0) {
+            return -1;
+        } else {
+            return ((((1L << regionBits) - 1) << (workerIdBits + sequenceBits)) & id) >> (workerIdBits + sequenceBits);
+        }
+    }
+
+    public long decodeWorkerId(long id) {
+        if (workerIdBits == 0) {
+            return -1;
+        } else {
+            return ((((1L << workerIdBits) - 1) << sequenceBits) & id) >> sequenceBits;
+        }
+    }
+
+    public long decodeSequence(long id) {
+        if (sequenceBits == 0) {
+            return -1;
+        } else {
+            return ((1L << sequenceBits) - 1) & id;
+        }
     }
 
     //选择一个随机值，而不是每次都从0开始
